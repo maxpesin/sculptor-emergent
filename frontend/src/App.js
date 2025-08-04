@@ -352,6 +352,7 @@ const CreateSplitView = ({ setCurrentView, muscleGroups, fetchWorkoutSplits }) =
 const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
   const [workoutExercises, setWorkoutExercises] = useState([]);
   const [currentDay, setCurrentDay] = useState(null);
+  const [currentSessionId, setCurrentSessionId] = useState(null);
 
   useEffect(() => {
     if (currentSplit) {
@@ -374,7 +375,10 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
                 { set_number: 1, weight: 0, reps: 0 },
                 { set_number: 2, weight: 0, reps: 0 },
                 { set_number: 3, weight: 0, reps: 0 }
-              ]
+              ],
+              completed_count: 0,
+              target_completions: 3,
+              is_archived: false
             });
           });
         });
@@ -389,7 +393,56 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
     setWorkoutExercises(updated);
   };
 
-  const saveWorkout = async () => {
+  const completeExercise = async (exerciseIndex) => {
+    if (!currentSessionId) {
+      // Create session first if it doesn't exist
+      await saveWorkout(true);
+      return;
+    }
+
+    try {
+      const exercise = workoutExercises[exerciseIndex];
+      const response = await axios.patch(`${API}/sessions/${currentSessionId}/exercises/${exercise.exercise_id}/complete`);
+      
+      // Update local state
+      const updated = [...workoutExercises];
+      updated[exerciseIndex].completed_count = response.data.completed_count;
+      updated[exerciseIndex].is_archived = response.data.is_archived;
+      setWorkoutExercises(updated);
+
+      // Show completion message
+      if (response.data.is_archived) {
+        alert(`🎉 Exercise completed! "${exercise.exercise_name}" has been moved to archive.`);
+      } else {
+        alert(`✅ Exercise completed! ${response.data.completed_count}/${exercise.target_completions} completions.`);
+      }
+    } catch (error) {
+      console.error('Error completing exercise:', error);
+      alert('Error completing exercise');
+    }
+  };
+
+  const resetExerciseCompletion = async (exerciseIndex) => {
+    if (!currentSessionId) return;
+
+    try {
+      const exercise = workoutExercises[exerciseIndex];
+      const response = await axios.patch(`${API}/sessions/${currentSessionId}/exercises/${exercise.exercise_id}/reset`);
+      
+      // Update local state
+      const updated = [...workoutExercises];
+      updated[exerciseIndex].completed_count = 0;
+      updated[exerciseIndex].is_archived = false;
+      setWorkoutExercises(updated);
+
+      alert('Exercise completion reset successfully');
+    } catch (error) {
+      console.error('Error resetting exercise:', error);
+      alert('Error resetting exercise completion');
+    }
+  };
+
+  const saveWorkout = async (createSessionOnly = false) => {
     try {
       const sessionData = {
         split_id: currentSplit.id,
@@ -397,9 +450,13 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
         exercises: workoutExercises
       };
 
-      await axios.post(`${API}/sessions`, sessionData);
-      alert('Workout saved successfully!');
-      setCurrentView('home');
+      const response = await axios.post(`${API}/sessions`, sessionData);
+      setCurrentSessionId(response.data.id);
+
+      if (!createSessionOnly) {
+        alert('Workout saved successfully!');
+        setCurrentView('home');
+      }
     } catch (error) {
       console.error('Error saving workout:', error);
       alert('Error saving workout');
@@ -410,13 +467,91 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
     return <div>Loading...</div>;
   }
 
-  const groupedExercises = workoutExercises.reduce((acc, exercise) => {
-    if (!acc[exercise.muscle_group]) {
-      acc[exercise.muscle_group] = [];
-    }
-    acc[exercise.muscle_group].push(exercise);
-    return acc;
-  }, {});
+  // Separate active and archived exercises
+  const activeExercises = workoutExercises.filter(ex => !ex.is_archived);
+  const archivedExercises = workoutExercises.filter(ex => ex.is_archived);
+
+  const renderExercisesByMuscleGroup = (exercisesToRender, isArchived = false) => {
+    const groupedExercises = exercisesToRender.reduce((acc, exercise) => {
+      if (!acc[exercise.muscle_group]) {
+        acc[exercise.muscle_group] = [];
+      }
+      acc[exercise.muscle_group].push(exercise);
+      return acc;
+    }, {});
+
+    return Object.entries(groupedExercises).map(([muscleGroup, groupExercises]) => (
+      <div key={`${muscleGroup}-${isArchived ? 'archived' : 'active'}`} className="muscle-group-section">
+        <h2 className="heading-2">{muscleGroup} {isArchived && '(Archived)'}</h2>
+        
+        {groupExercises.map((exercise, exerciseIndex) => {
+          const globalIndex = workoutExercises.findIndex(we => 
+            we.exercise_id === exercise.exercise_id && 
+            we.muscle_group === exercise.muscle_group
+          );
+          
+          return (
+            <div key={`${exercise.exercise_id}-${muscleGroup}`} className={`exercise-card ${isArchived ? 'archived' : ''}`}>
+              <div className="exercise-header">
+                <h3 className="heading-3">{exercise.exercise_name}</h3>
+                <div className="exercise-completion">
+                  <span className="completion-count">
+                    {exercise.completed_count}/{exercise.target_completions} completed
+                  </span>
+                  {!isArchived && (
+                    <button
+                      className="btn-complete"
+                      onClick={() => completeExercise(globalIndex)}
+                    >
+                      Complete
+                    </button>
+                  )}
+                  {isArchived && (
+                    <button
+                      className="btn-reset"
+                      onClick={() => resetExerciseCompletion(globalIndex)}
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              <div className="sets-table">
+                <div className="sets-header">
+                  <span>Set</span>
+                  <span>Weight (lbs)</span>
+                  <span>Reps</span>
+                </div>
+                
+                {exercise.sets.map((set, setIndex) => (
+                  <div key={setIndex} className="set-row">
+                    <span className="set-number">{set.set_number}</span>
+                    <input
+                      type="number"
+                      className="set-input"
+                      value={set.weight}
+                      onChange={(e) => updateSet(globalIndex, setIndex, 'weight', e.target.value)}
+                      placeholder="0"
+                      disabled={isArchived}
+                    />
+                    <input
+                      type="number"
+                      className="set-input"
+                      value={set.reps}
+                      onChange={(e) => updateSet(globalIndex, setIndex, 'reps', e.target.value)}
+                      placeholder="0"
+                      disabled={isArchived}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    ));
+  };
 
   return (
     <div className="workout-view">
@@ -427,59 +562,28 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
         </div>
 
         <div className="workout-content">
-          {Object.entries(groupedExercises).map(([muscleGroup, groupExercises]) => (
-            <div key={muscleGroup} className="muscle-group-section">
-              <h2 className="heading-2">{muscleGroup}</h2>
-              
-              {groupExercises.map((exercise, exerciseIndex) => {
-                const globalIndex = workoutExercises.findIndex(we => 
-                  we.exercise_id === exercise.exercise_id && 
-                  we.muscle_group === exercise.muscle_group
-                );
-                
-                return (
-                  <div key={`${exercise.exercise_id}-${muscleGroup}`} className="exercise-card">
-                    <h3 className="heading-3">{exercise.exercise_name}</h3>
-                    
-                    <div className="sets-table">
-                      <div className="sets-header">
-                        <span>Set</span>
-                        <span>Weight (lbs)</span>
-                        <span>Reps</span>
-                      </div>
-                      
-                      {exercise.sets.map((set, setIndex) => (
-                        <div key={setIndex} className="set-row">
-                          <span className="set-number">{set.set_number}</span>
-                          <input
-                            type="number"
-                            className="set-input"
-                            value={set.weight}
-                            onChange={(e) => updateSet(globalIndex, setIndex, 'weight', e.target.value)}
-                            placeholder="0"
-                          />
-                          <input
-                            type="number"
-                            className="set-input"
-                            value={set.reps}
-                            onChange={(e) => updateSet(globalIndex, setIndex, 'reps', e.target.value)}
-                            placeholder="0"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
+          {/* Active Exercises */}
+          {activeExercises.length > 0 && (
+            <div className="active-exercises">
+              <h2 className="section-title">Active Exercises</h2>
+              {renderExercisesByMuscleGroup(activeExercises, false)}
             </div>
-          ))}
+          )}
+          
+          {/* Archived Exercises */}
+          {archivedExercises.length > 0 && (
+            <div className="archived-exercises">
+              <h2 className="section-title">Completed Exercises</h2>
+              {renderExercisesByMuscleGroup(archivedExercises, true)}
+            </div>
+          )}
         </div>
 
         <div className="workout-actions">
           <button className="btn-secondary" onClick={() => setCurrentView('home')}>
             Cancel
           </button>
-          <button className="btn-primary" onClick={saveWorkout}>
+          <button className="btn-primary" onClick={() => saveWorkout(false)}>
             Save Workout
           </button>
         </div>
