@@ -662,6 +662,8 @@ const ExerciseArchiveView = ({ exercises, muscleGroups, setCurrentView }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [exerciseOrder, setExerciseOrder] = useState([]);
   const [exerciseHistory, setExerciseHistory] = useState({});
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [selectedExercise, setSelectedExercise] = useState(null);
 
   useEffect(() => {
     setExerciseOrder(exercises.map(ex => ex.id));
@@ -676,20 +678,35 @@ const ExerciseArchiveView = ({ exercises, muscleGroups, setCurrentView }) => {
       const history = {};
       sessions.forEach(session => {
         session.exercises.forEach(exercise => {
-          if (!history[exercise.exercise_id] || new Date(session.completed_at) > new Date(history[exercise.exercise_id].date)) {
-            history[exercise.exercise_id] = {
-              date: session.completed_at,
-              sets: exercise.sets,
-              completed_count: exercise.completed_count
-            };
+          if (!history[exercise.exercise_id]) {
+            history[exercise.exercise_id] = [];
           }
+          history[exercise.exercise_id].push({
+            date: session.completed_at,
+            sets: exercise.sets,
+            completed_count: exercise.completed_count
+          });
         });
       });
-      
+
+      Object.keys(history).forEach(id => {
+        history[id].sort((a, b) => new Date(b.date) - new Date(a.date));
+      });
+
       setExerciseHistory(history);
     } catch (error) {
       console.error('Error fetching exercise history:', error);
     }
+  };
+
+  const openHistoryModal = (exercise) => {
+    setSelectedExercise(exercise);
+    setShowHistoryModal(true);
+  };
+
+  const closeHistoryModal = () => {
+    setShowHistoryModal(false);
+    setSelectedExercise(null);
   };
 
   const handleDragEnd = (result) => {
@@ -725,14 +742,15 @@ const ExerciseArchiveView = ({ exercises, muscleGroups, setCurrentView }) => {
   };
 
   const getLastWorkoutDisplay = (exercise) => {
-    const history = exerciseHistory[exercise.id];
-    if (!history || !history.sets || history.sets.length === 0) {
+    const historyEntries = exerciseHistory[exercise.id];
+    if (!historyEntries || historyEntries.length === 0 || !historyEntries[0].sets || historyEntries[0].sets.length === 0) {
       return <span className="no-history">🆕 No battles yet</span>;
     }
 
-    const lastSet = history.sets[history.sets.length - 1];
-    const date = new Date(history.date).toLocaleDateString();
-    
+    const latest = historyEntries[0];
+    const lastSet = latest.sets[latest.sets.length - 1];
+    const date = new Date(latest.date).toLocaleDateString();
+
     return (
       <div className="gladiator-history">
         <div className="history-date">📅 {date}</div>
@@ -740,7 +758,7 @@ const ExerciseArchiveView = ({ exercises, muscleGroups, setCurrentView }) => {
           ⚖️ {lastSet.weight}lbs × {lastSet.reps} reps
         </div>
         <div className="history-completions">
-          🏆 {history.completed_count} victories
+          🏆 {latest.completed_count} victories
         </div>
       </div>
     );
@@ -796,11 +814,10 @@ const ExerciseArchiveView = ({ exercises, muscleGroups, setCurrentView }) => {
                       <div
                         ref={provided.innerRef}
                         {...provided.draggableProps}
-                        {...provided.dragHandleProps}
                         className={`codex-row ${snapshot.isDragging ? 'dragging' : ''}`}
                       >
-                        <span className="col-handle">⋮⋮</span>
-                        <span className="col-exercise">
+                        <span className="col-handle" {...provided.dragHandleProps}>⋮⋮</span>
+                        <span className="col-exercise" onClick={() => openHistoryModal(exercise)}>
                           <strong>{exercise.name}</strong>
                         </span>
                         <span className="col-equipment">
@@ -828,6 +845,40 @@ const ExerciseArchiveView = ({ exercises, muscleGroups, setCurrentView }) => {
             🔄 Refresh Codex
           </button>
         </div>
+        {showHistoryModal && selectedExercise && (
+          <div className="modal-overlay" onClick={closeHistoryModal}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>📜 {selectedExercise.name} History</h2>
+              {exerciseHistory[selectedExercise.id] && exerciseHistory[selectedExercise.id].length > 0 ? (
+                <table className="history-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Set</th>
+                      <th>Weight</th>
+                      <th>Reps</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {exerciseHistory[selectedExercise.id].map((entry, i) => (
+                      entry.sets.map((set) => (
+                        <tr key={`${i}-${set.set_number}`}>
+                          <td>{new Date(entry.date).toLocaleDateString()}</td>
+                          <td>{set.set_number}</td>
+                          <td>{set.weight}</td>
+                          <td>{set.reps}</td>
+                        </tr>
+                      ))
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="no-history">No history found.</p>
+              )}
+              <button className="btn-primary modal-close" onClick={closeHistoryModal}>Close</button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
