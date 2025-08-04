@@ -18,7 +18,7 @@ A comprehensive workout tracking application with Roman gladiator theming, featu
 
 - **Frontend**: React + Advanced CSS (Roman Gladiator Theme)
 - **Backend**: FastAPI + Python
-- **Database**: MongoDB
+- **Database**: JSON File Storage (no external database required)
 - **Additional**: Drag & Drop (react-beautiful-dnd), Axios
 
 ## 🚀 Quick Start
