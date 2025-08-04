@@ -750,7 +750,7 @@ const ExerciseArchiveView = ({ exercises, muscleGroups, setCurrentView }) => {
 
     const latest = historyEntries[0];
     const lastSet = latest.sets[latest.sets.length - 1];
-    const date = new Date(latest.date).toLocaleDateString();
+    const date = new Date(latest.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
     return (
       <div className="gladiator-history">
@@ -866,7 +866,7 @@ const ExerciseArchiveView = ({ exercises, muscleGroups, setCurrentView }) => {
                   <tbody>
                     {exerciseHistory[selectedExercise.id].map((entry, i) => {
                       const dateObj = new Date(entry.date);
-                      const date = dateObj.toLocaleDateString();
+                      const date = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                       const time = dateObj.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
                       const sets = entry.sets;
                       return (
