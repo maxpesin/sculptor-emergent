@@ -1,54 +1,557 @@
-import { useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import "./App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
 import axios from "axios";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Home = () => {
-  const helloWorldApi = async () => {
+// Main App Component
+function App() {
+  const [currentView, setCurrentView] = useState('home');
+  const [workoutSplits, setWorkoutSplits] = useState([]);
+  const [currentSplit, setCurrentSplit] = useState(null);
+  const [exercises, setExercises] = useState([]);
+  const [muscleGroups, setMuscleGroups] = useState([]);
+
+  useEffect(() => {
+    fetchMuscleGroups();
+    fetchWorkoutSplits();
+    fetchExercises();
+  }, []);
+
+  const fetchMuscleGroups = async () => {
     try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+      const response = await axios.get(`${API}/muscle-groups`);
+      setMuscleGroups(response.data);
+    } catch (error) {
+      console.error('Error fetching muscle groups:', error);
     }
   };
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  const fetchWorkoutSplits = async () => {
+    try {
+      const response = await axios.get(`${API}/splits`);
+      setWorkoutSplits(response.data);
+    } catch (error) {
+      console.error('Error fetching workout splits:', error);
+    }
+  };
+
+  const fetchExercises = async () => {
+    try {
+      const response = await axios.get(`${API}/exercises`);
+      setExercises(response.data);
+    } catch (error) {
+      console.error('Error fetching exercises:', error);
+    }
+  };
+
+  const renderView = () => {
+    switch (currentView) {
+      case 'home':
+        return <HomeView setCurrentView={setCurrentView} workoutSplits={workoutSplits} setCurrentSplit={setCurrentSplit} />;
+      case 'create-split':
+        return <CreateSplitView setCurrentView={setCurrentView} muscleGroups={muscleGroups} fetchWorkoutSplits={fetchWorkoutSplits} />;
+      case 'workout':
+        return <WorkoutView currentSplit={currentSplit} exercises={exercises} setCurrentView={setCurrentView} />;
+      case 'exercise-archive':
+        return <ExerciseArchiveView exercises={exercises} muscleGroups={muscleGroups} setCurrentView={setCurrentView} />;
+      default:
+        return <HomeView setCurrentView={setCurrentView} workoutSplits={workoutSplits} setCurrentSplit={setCurrentSplit} />;
+    }
+  };
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
+    <div className="App">
+      <Navigation currentView={currentView} setCurrentView={setCurrentView} />
+      {renderView()}
+    </div>
+  );
+}
+
+// Navigation Component
+const Navigation = ({ currentView, setCurrentView }) => {
+  return (
+    <nav className="nav-header">
+      <div className="nav-brand">
+        <h1 className="brand-display">WorkoutTracker</h1>
+      </div>
+      <div className="nav-links">
+        <button 
+          className={`nav-link ${currentView === 'home' ? 'active' : ''}`}
+          onClick={() => setCurrentView('home')}
         >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
+          Home
+        </button>
+        <button 
+          className={`nav-link ${currentView === 'create-split' ? 'active' : ''}`}
+          onClick={() => setCurrentView('create-split')}
+        >
+          Create Split
+        </button>
+        <button 
+          className={`nav-link ${currentView === 'exercise-archive' ? 'active' : ''}`}
+          onClick={() => setCurrentView('exercise-archive')}
+        >
+          Exercise Archive
+        </button>
+      </div>
+    </nav>
+  );
+};
+
+// Home View Component
+const HomeView = ({ setCurrentView, workoutSplits, setCurrentSplit }) => {
+  const handleStartWorkout = (split, dayNumber) => {
+    setCurrentSplit({ ...split, currentDay: dayNumber });
+    setCurrentView('workout');
+  };
+
+  return (
+    <div className="home-view">
+      <section className="hero-section">
+        <div className="hero-content">
+          <h1 className="hero-title">Track Your Workouts</h1>
+          <p className="hero-subtitle">
+            Create custom workout splits, track your progress, and build the perfect routine
+          </p>
+          <div className="hero-actions">
+            <button 
+              className="btn-primary"
+              onClick={() => setCurrentView('create-split')}
+            >
+              Create New Split
+            </button>
+            <button 
+              className="btn-secondary"
+              onClick={() => setCurrentView('exercise-archive')}
+            >
+              Browse Exercises
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section className="splits-section">
+        <div className="container">
+          <h2 className="heading-2">Your Workout Splits</h2>
+          {workoutSplits.length > 0 ? (
+            <div className="company-grid">
+              {workoutSplits.map(split => (
+                <div key={split.id} className="service-card">
+                  <div className="service-card-title">{split.name}</div>
+                  <div className="service-card-description">
+                    {split.days_per_week} days per week
+                  </div>
+                  <div className="split-days">
+                    {split.days.map(day => (
+                      <button
+                        key={day.day_number}
+                        className="btn-secondary day-button"
+                        onClick={() => handleStartWorkout(split, day.day_number)}
+                      >
+                        Day {day.day_number}: {day.day_name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <p className="body-large">No workout splits created yet</p>
+              <button 
+                className="btn-primary"
+                onClick={() => setCurrentView('create-split')}
+              >
+                Create Your First Split
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 };
 
-function App() {
+// Create Split View Component
+const CreateSplitView = ({ setCurrentView, muscleGroups, fetchWorkoutSplits }) => {
+  const [splitName, setSplitName] = useState('');
+  const [daysPerWeek, setDaysPerWeek] = useState(3);
+  const [days, setDays] = useState([]);
+  const [templates, setTemplates] = useState({});
+
+  useEffect(() => {
+    fetchTemplates();
+    initializeDays(daysPerWeek);
+  }, [daysPerWeek]);
+
+  const fetchTemplates = async () => {
+    try {
+      const response = await axios.get(`${API}/templates`);
+      setTemplates(response.data);
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+    }
+  };
+
+  const initializeDays = (numDays) => {
+    const newDays = Array.from({ length: numDays }, (_, index) => ({
+      day_number: index + 1,
+      day_name: `Day ${index + 1}`,
+      muscle_groups: [],
+      exercises: []
+    }));
+    setDays(newDays);
+  };
+
+  const updateDay = (dayIndex, field, value) => {
+    const updatedDays = [...days];
+    updatedDays[dayIndex] = { ...updatedDays[dayIndex], [field]: value };
+    setDays(updatedDays);
+  };
+
+  const toggleMuscleGroup = (dayIndex, muscleGroup) => {
+    const updatedDays = [...days];
+    const currentGroups = updatedDays[dayIndex].muscle_groups;
+    
+    if (currentGroups.includes(muscleGroup)) {
+      updatedDays[dayIndex].muscle_groups = currentGroups.filter(mg => mg !== muscleGroup);
+    } else {
+      updatedDays[dayIndex].muscle_groups = [...currentGroups, muscleGroup];
+    }
+    
+    setDays(updatedDays);
+  };
+
+  const useTemplate = (templateKey) => {
+    const template = templates[templateKey];
+    if (template) {
+      setSplitName(template.name);
+      setDaysPerWeek(template.days_per_week);
+      setDays(template.days);
+    }
+  };
+
+  const createSplit = async () => {
+    if (!splitName.trim() || days.some(day => day.muscle_groups.length === 0)) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      const splitData = {
+        name: splitName,
+        days_per_week: daysPerWeek,
+        days: days
+      };
+
+      await axios.post(`${API}/splits`, splitData);
+      await fetchWorkoutSplits();
+      setCurrentView('home');
+    } catch (error) {
+      console.error('Error creating split:', error);
+      alert('Error creating workout split');
+    }
+  };
+
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+    <div className="create-split-view">
+      <div className="container">
+        <h1 className="heading-1">Create Workout Split</h1>
+        
+        <div className="templates-section">
+          <h3 className="heading-3">Quick Templates</h3>
+          <div className="template-buttons">
+            {Object.entries(templates).map(([key, template]) => (
+              <button
+                key={key}
+                className="btn-secondary"
+                onClick={() => useTemplate(key)}
+              >
+                {template.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="split-form">
+          <div className="form-group">
+            <label className="form-label">Split Name</label>
+            <input
+              type="text"
+              className="form-input"
+              value={splitName}
+              onChange={(e) => setSplitName(e.target.value)}
+              placeholder="My Custom Split"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Days Per Week</label>
+            <select 
+              className="form-select"
+              value={daysPerWeek}
+              onChange={(e) => setDaysPerWeek(parseInt(e.target.value))}
+            >
+              <option value={3}>3 Days</option>
+              <option value={4}>4 Days</option>
+              <option value={5}>5 Days</option>
+              <option value={6}>6 Days</option>
+            </select>
+          </div>
+
+          <div className="days-section">
+            <h3 className="heading-3">Configure Days</h3>
+            {days.map((day, dayIndex) => (
+              <div key={dayIndex} className="day-config">
+                <div className="day-header">
+                  <h4 className="heading-4">Day {day.day_number}</h4>
+                  <input
+                    type="text"
+                    className="day-name-input"
+                    value={day.day_name}
+                    onChange={(e) => updateDay(dayIndex, 'day_name', e.target.value)}
+                    placeholder="Day name"
+                  />
+                </div>
+                
+                <div className="muscle-groups-selection">
+                  <p className="body-medium">Select muscle groups for this day:</p>
+                  <div className="muscle-group-chips">
+                    {muscleGroups.map(muscleGroup => (
+                      <button
+                        key={muscleGroup}
+                        className={`muscle-chip ${day.muscle_groups.includes(muscleGroup) ? 'selected' : ''}`}
+                        onClick={() => toggleMuscleGroup(dayIndex, muscleGroup)}
+                      >
+                        {muscleGroup}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="form-actions">
+            <button className="btn-secondary" onClick={() => setCurrentView('home')}>
+              Cancel
+            </button>
+            <button className="btn-primary" onClick={createSplit}>
+              Create Split
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+// Workout View Component
+const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
+  const [workoutExercises, setWorkoutExercises] = useState([]);
+  const [currentDay, setCurrentDay] = useState(null);
+
+  useEffect(() => {
+    if (currentSplit) {
+      const day = currentSplit.days.find(d => d.day_number === currentSplit.currentDay);
+      setCurrentDay(day);
+      
+      if (day) {
+        const dayExercises = [];
+        day.muscle_groups.forEach(muscleGroup => {
+          const muscleExercises = exercises
+            .filter(ex => ex.muscle_group === muscleGroup)
+            .slice(0, 3);
+          
+          muscleExercises.forEach(exercise => {
+            dayExercises.push({
+              exercise_id: exercise.id,
+              exercise_name: exercise.name,
+              muscle_group: exercise.muscle_group,
+              sets: [
+                { set_number: 1, weight: 0, reps: 0 },
+                { set_number: 2, weight: 0, reps: 0 },
+                { set_number: 3, weight: 0, reps: 0 }
+              ]
+            });
+          });
+        });
+        setWorkoutExercises(dayExercises);
+      }
+    }
+  }, [currentSplit, exercises]);
+
+  const updateSet = (exerciseIndex, setIndex, field, value) => {
+    const updated = [...workoutExercises];
+    updated[exerciseIndex].sets[setIndex][field] = parseFloat(value) || 0;
+    setWorkoutExercises(updated);
+  };
+
+  const saveWorkout = async () => {
+    try {
+      const sessionData = {
+        split_id: currentSplit.id,
+        day_number: currentSplit.currentDay,
+        exercises: workoutExercises
+      };
+
+      await axios.post(`${API}/sessions`, sessionData);
+      alert('Workout saved successfully!');
+      setCurrentView('home');
+    } catch (error) {
+      console.error('Error saving workout:', error);
+      alert('Error saving workout');
+    }
+  };
+
+  if (!currentDay) {
+    return <div>Loading...</div>;
+  }
+
+  const groupedExercises = workoutExercises.reduce((acc, exercise) => {
+    if (!acc[exercise.muscle_group]) {
+      acc[exercise.muscle_group] = [];
+    }
+    acc[exercise.muscle_group].push(exercise);
+    return acc;
+  }, {});
+
+  return (
+    <div className="workout-view">
+      <div className="container">
+        <div className="workout-header">
+          <h1 className="heading-1">{currentDay.day_name}</h1>
+          <p className="body-large">Target: {currentDay.muscle_groups.join(', ')}</p>
+        </div>
+
+        <div className="workout-content">
+          {Object.entries(groupedExercises).map(([muscleGroup, groupExercises]) => (
+            <div key={muscleGroup} className="muscle-group-section">
+              <h2 className="heading-2">{muscleGroup}</h2>
+              
+              {groupExercises.map((exercise, exerciseIndex) => {
+                const globalIndex = workoutExercises.findIndex(we => 
+                  we.exercise_id === exercise.exercise_id && 
+                  we.muscle_group === exercise.muscle_group
+                );
+                
+                return (
+                  <div key={`${exercise.exercise_id}-${muscleGroup}`} className="exercise-card">
+                    <h3 className="heading-3">{exercise.exercise_name}</h3>
+                    
+                    <div className="sets-table">
+                      <div className="sets-header">
+                        <span>Set</span>
+                        <span>Weight (lbs)</span>
+                        <span>Reps</span>
+                      </div>
+                      
+                      {exercise.sets.map((set, setIndex) => (
+                        <div key={setIndex} className="set-row">
+                          <span className="set-number">{set.set_number}</span>
+                          <input
+                            type="number"
+                            className="set-input"
+                            value={set.weight}
+                            onChange={(e) => updateSet(globalIndex, setIndex, 'weight', e.target.value)}
+                            placeholder="0"
+                          />
+                          <input
+                            type="number"
+                            className="set-input"
+                            value={set.reps}
+                            onChange={(e) => updateSet(globalIndex, setIndex, 'reps', e.target.value)}
+                            placeholder="0"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+
+        <div className="workout-actions">
+          <button className="btn-secondary" onClick={() => setCurrentView('home')}>
+            Cancel
+          </button>
+          <button className="btn-primary" onClick={saveWorkout}>
+            Save Workout
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Exercise Archive View Component
+const ExerciseArchiveView = ({ exercises, muscleGroups, setCurrentView }) => {
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredExercises = exercises.filter(exercise => {
+    const matchesMuscleGroup = !selectedMuscleGroup || exercise.muscle_group === selectedMuscleGroup;
+    const matchesSearch = !searchTerm || 
+      exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      exercise.muscle_group.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    return matchesMuscleGroup && matchesSearch;
+  });
+
+  return (
+    <div className="exercise-archive-view">
+      <div className="container">
+        <h1 className="heading-1">Exercise Archive</h1>
+        
+        <div className="archive-filters">
+          <div className="filter-group">
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Search exercises..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            
+            <select
+              className="filter-select"
+              value={selectedMuscleGroup}
+              onChange={(e) => setSelectedMuscleGroup(e.target.value)}
+            >
+              <option value="">All Muscle Groups</option>
+              {muscleGroups.map(group => (
+                <option key={group} value={group}>{group}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="exercises-grid">
+          {filteredExercises.map(exercise => (
+            <div key={exercise.id} className="exercise-card">
+              <div className="exercise-info">
+                <h3 className="exercise-name">{exercise.name}</h3>
+                <span className="exercise-muscle-group">{exercise.muscle_group}</span>
+                {exercise.equipment && (
+                  <span className="exercise-equipment">{exercise.equipment}</span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="archive-actions">
+          <button className="btn-secondary" onClick={() => setCurrentView('home')}>
+            Back to Home
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default App;

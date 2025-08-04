@@ -1,38 +1,682 @@
+/* Import company fonts */
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&display=swap');
+
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+/* CSS Variables - company Design System */
+:root {
+  /* Backgrounds */
+  --bg-page: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-section: rgba(243, 234, 255, 0.3);
+
+  /* Text */
+  --text-primary: rgb(24, 24, 24);
+  --text-secondary: rgb(112, 112, 112);
+  --text-muted: rgb(143, 143, 143);
+
+  /* Borders */
+  --border-light: rgba(24, 24, 24, 0.1);
+  --border-medium: rgba(24, 24, 24, 0.2);
+  --border-strong: rgba(24, 24, 24, 0.3);
+
+  /* Brand Colors */
+  --brand-primary: rgb(0, 128, 255);
+  --brand-hover: rgb(0, 153, 255);
+  --brand-active: rgb(0, 102, 204);
+
+  /* Gradients */
+  --gradient-hero: linear-gradient(135deg, rgba(243, 234, 255, 0.8) 0%, rgba(255, 232, 240, 0.8) 25%, rgba(232, 244, 255, 0.8) 50%, rgba(255, 232, 213, 0.8) 75%, rgba(243, 234, 255, 0.8) 100%);
+  --gradient-button: linear-gradient(168deg, rgb(67, 67, 67) -63%, rgb(0, 0, 0) 100%);
+  --gradient-divider: linear-gradient(90deg, transparent 0%, rgba(24, 24, 24, 0.1) 50%, transparent 100%);
+}
+
+/* Typography */
+.brand-display {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: clamp(24px, 4vw, 32px);
+  line-height: 1.1em;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.heading-1 {
+  font-family: 'Satoshi';
+  font-weight: 700;
+  font-size: clamp(32px, 5vw, 64px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
+}
+
+.heading-2 {
+  font-family: 'Satoshi';
+  font-weight: 600;
+  font-size: clamp(24px, 4vw, 48px);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  margin-bottom: 16px;
+}
+
+.heading-3 {
+  font-family: 'Satoshi';
+  font-weight: 600;
+  font-size: clamp(20px, 3vw, 32px);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+}
+
+.heading-4 {
+  font-family: 'Satoshi';
+  font-weight: 600;
+  font-size: clamp(18px, 2.5vw, 24px);
+  line-height: 1.4;
+  letter-spacing: -0.005em;
+  margin-bottom: 8px;
+}
+
+.body-large {
+  font-family: 'Satoshi';
+  font-weight: 400;
+  font-size: clamp(16px, 2.5vw, 20px);
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.body-medium {
+  font-family: 'Satoshi';
+  font-weight: 400;
+  font-size: clamp(14px, 2vw, 16px);
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+/* Layout */
 .App {
-    text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+@media (max-width: 809px) {
+  .container {
+    padding: 0 16px;
+  }
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
+/* Navigation */
+.nav-header {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-light);
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-brand {
+  flex: 1;
+}
+
+.nav-links {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-link {
+  color: var(--text-primary);
+  text-decoration: none;
+  font-family: 'Satoshi', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 12px 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.nav-link:hover {
+  background: rgba(24, 24, 24, 0.05);
+  color: var(--brand-primary);
+}
+
+.nav-link.active {
+  background: rgba(0, 128, 255, 0.1);
+  color: var(--brand-primary);
+}
+
+/* Buttons */
+.btn-primary {
+  background: var(--gradient-button);
+  color: white;
+  border: none;
+  border-radius: 100px;
+  padding: 14px 24px;
+  font-family: 'Satoshi Variable', sans-serif;
+  font-variation-settings: "wght" 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 48px;
+  box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.12);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.3;
+}
+
+.btn-primary:hover {
+  transform: scale(1.04);
+  box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary:active {
+  transform: scale(0.96);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 100px;
+  padding: 14px 24px;
+  font-family: 'Satoshi Variable', sans-serif;
+  font-variation-settings: "wght" 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 48px;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.12);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.3;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.02);
+}
+
+/* Hero Section */
+.hero-section {
+  background: var(--gradient-hero);
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 80px 24px;
+}
+
+.hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.hero-title {
+  font-family: 'Satoshi Variable', sans-serif;
+  font-variation-settings: "wght" 700;
+  font-size: clamp(32px, 5vw, 64px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+}
+
+.hero-subtitle {
+  font-family: 'Satoshi', sans-serif;
+  font-size: clamp(16px, 2.5vw, 20px);
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Cards and Grids */
+.service-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.service-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.08);
+  border-color: var(--border-medium);
+}
+
+.service-card-title {
+  font-family: 'Satoshi Variable', sans-serif;
+  font-variation-settings: "wght" 600;
+  font-size: 18px;
+  line-height: 1.3;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.service-card-description {
+  font-family: 'Satoshi', sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.company-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px 24px;
+  padding: 24px 0;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Sections */
+.splits-section {
+  padding: 64px 0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+}
+
+/* Split Days */
+.split-days {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.day-button {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 14px;
+}
+
+/* Create Split Form */
+.create-split-view {
+  padding: 40px 0;
+}
+
+.templates-section {
+  margin-bottom: 32px;
+  padding: 24px;
+  background: var(--bg-section);
+  border-radius: 12px;
+}
+
+.template-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.split-form {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 32px;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.form-input, .form-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  font-size: 16px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.form-input:focus, .form-select:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(0, 128, 255, 0.1);
+}
+
+/* Day Configuration */
+.days-section {
+  margin: 32px 0;
+}
+
+.day-config {
+  background: var(--bg-section);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.day-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.day-name-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border-medium);
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+.muscle-groups-selection {
+  margin-top: 16px;
+}
+
+.muscle-group-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.muscle-chip {
+  padding: 8px 16px;
+  border: 1px solid var(--border-medium);
+  border-radius: 20px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.muscle-chip:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
+.muscle-chip.selected {
+  background: var(--brand-primary);
+  color: white;
+  border-color: var(--brand-primary);
+}
+
+.form-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  margin-top: 32px;
+}
+
+/* Workout View */
+.workout-view {
+  padding: 40px 0;
+}
+
+.workout-header {
+  text-align: center;
+  margin-bottom: 48px;
+  padding: 24px;
+  background: var(--bg-section);
+  border-radius: 12px;
+}
+
+.workout-content {
+  margin-bottom: 48px;
+}
+
+.muscle-group-section {
+  margin-bottom: 48px;
+}
+
+.exercise-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.sets-table {
+  margin-top: 16px;
+}
+
+.sets-header {
+  display: grid;
+  grid-template-columns: 60px 1fr 1fr;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-light);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.set-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 1fr;
+  gap: 16px;
+  padding: 12px 0;
+  align-items: center;
+}
+
+.set-number {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.set-input {
+  padding: 8px 12px;
+  border: 1px solid var(--border-medium);
+  border-radius: 6px;
+  font-size: 16px;
+  text-align: center;
+}
+
+.set-input:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+}
+
+.workout-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+/* Exercise Archive */
+.exercise-archive-view {
+  padding: 40px 0;
+}
+
+.archive-filters {
+  margin: 32px 0;
+}
+
+.filter-group {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.search-input, .filter-select {
+  padding: 12px 16px;
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-select {
+  min-width: 180px;
+}
+
+.exercises-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin: 32px 0;
+}
+
+.exercise-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.exercise-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.exercise-muscle-group {
+  color: var(--brand-primary);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.exercise-equipment {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.archive-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 48px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 809px) {
+  .nav-header {
+    padding: 16px;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .nav-links {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .hero-section {
+    padding: 60px 16px;
+    min-height: 70vh;
+  }
+
+  .company-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 16px 0;
+  }
+
+  .btn-primary, .btn-secondary {
+    width: 100%;
+    min-height: 52px;
+  }
+
+  .hero-actions {
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
-}
+  }
 
-.App-link {
-    color: #61dafb;
-}
+  .hero-actions .btn-primary,
+  .hero-actions .btn-secondary {
+    width: 100%;
+    max-width: 300px;
+  }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+  .split-days {
+    gap: 8px;
+  }
+
+  .day-button {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  .day-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .filter-group {
+    flex-direction: column;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .workout-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .sets-header, .set-row {
+    grid-template-columns: 50px 1fr 1fr;
+    gap: 8px;
+  }
+
+  .exercises-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }
