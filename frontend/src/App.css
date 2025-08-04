@@ -770,4 +770,32 @@ body {
     grid-template-columns: 1fr;
     gap: 16px;
   }
+
+  /* Mobile-specific styles for completion features */
+  .exercise-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .exercise-completion {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .completion-count {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .btn-complete, .btn-reset {
+    padding: 6px 12px;
+    font-size: 12px;
+    min-height: 32px;
+  }
+
+  .section-title {
+    font-size: clamp(18px, 4vw, 24px);
+    margin: 24px 0 16px 0;
+  }
 }
