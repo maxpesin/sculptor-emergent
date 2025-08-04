@@ -1,4 +1,4 @@
-# 💪 Sculptor - PowerShell Stop Script
+# 💪 Sculptor - PowerShell Stop Script (JSON Version)
 
 Write-Host "🏛️ Shutting down the gladiator arena..." -ForegroundColor Yellow
 
@@ -22,15 +22,11 @@ Stop-ProcessByPort 8001
 Write-Host "💪 Stopping frontend (port 3000)..." -ForegroundColor Red
 Stop-ProcessByPort 3000
 
-Write-Host "📊 Stopping MongoDB (port 27017)..." -ForegroundColor Red
-Stop-ProcessByPort 27017
-
 # Also kill by process name
 Write-Host "Stopping remaining processes..." -ForegroundColor Gray
 try {
     Get-Process -Name "python" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
     Get-Process -Name "node" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue  
-    Get-Process -Name "mongod" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 } catch {
     # Ignore errors for processes not found
 }
