@@ -1,6 +1,6 @@
 @echo off
 REM 💪 Sculptor - Roman Gladiator Workout Tracker
-REM Windows Startup Script
+REM Windows Startup Script (JSON Database Version)
 
 echo 🏛️ Welcome to Sculptor - Roman Gladiator Workout Tracker!
 echo ⚔️ Starting the gladiator training arena...
@@ -46,17 +46,6 @@ if %ERRORLEVEL% == 0 (
     exit /b 1
 )
 
-REM Check for MongoDB
-mongod --version >nul 2>&1
-if %ERRORLEVEL% == 0 (
-    echo ✅ MongoDB found
-) else (
-    echo ❌ MongoDB not found. Please install MongoDB from https://www.mongodb.com/try/download/community
-    echo    Or use MongoDB Atlas (cloud) instead
-    pause
-    exit /b 1
-)
-
 REM Check for Yarn
 yarn --version >nul 2>&1
 if %ERRORLEVEL% == 0 (
@@ -70,9 +59,9 @@ if %ERRORLEVEL% == 0 (
 echo.
 echo 🛠️ Setting up the arena...
 
-REM Create data directory for MongoDB
-if not exist "data\db" mkdir data\db
-echo ✅ Created MongoDB data directory
+REM Create data directory for JSON files
+if not exist "data\json" mkdir data\json
+echo ✅ Created JSON data directory
 
 REM Install backend dependencies
 echo 📦 Installing backend dependencies...
@@ -105,9 +94,9 @@ echo ✅ Development tools installed
 
 echo.
 echo 🚀 Starting services...
-echo    📊 MongoDB: http://localhost:27017
 echo    ⚔️ Backend API: http://localhost:8001
 echo    💪 Frontend: http://localhost:3000
+echo    📄 Data: JSON files in data/json/
 echo.
 echo Press Ctrl+C to stop all services
 echo.
