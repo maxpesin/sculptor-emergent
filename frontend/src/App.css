@@ -1063,6 +1063,24 @@ body {
     font-size: clamp(32px, 8vw, 48px);
   }
 
+  /* Mobile styles for splits-only view */
+  .splits-header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    padding: 24px 16px;
+    gap: 16px;
+  }
+
+  .splits-title {
+    font-size: clamp(24px, 6vw, 36px);
+  }
+
+  .splits-actions {
+    justify-content: center;
+    gap: 12px;
+  }
+
   .gladiator-splits-grid {
     grid-template-columns: 1fr;
     gap: 20px;
@@ -1088,6 +1106,12 @@ body {
   .hero-actions .btn-secondary {
     width: 100%;
     max-width: 280px;
+  }
+
+  .splits-actions .btn-primary,
+  .splits-actions .btn-secondary {
+    flex: 1;
+    min-width: 140px;
   }
 
   /* Mobile workout view fixes */
