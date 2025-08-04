@@ -684,7 +684,8 @@ const ExerciseArchiveView = ({ exercises, muscleGroups, setCurrentView }) => {
           history[exercise.exercise_id].push({
             date: session.completed_at,
             sets: exercise.sets,
-            completed_count: exercise.completed_count
+            completed_count: exercise.completed_count,
+            rep_range: exercise.rep_range
           });
         });
       });
@@ -854,22 +855,32 @@ const ExerciseArchiveView = ({ exercises, muscleGroups, setCurrentView }) => {
                   <thead>
                     <tr>
                       <th>Date</th>
-                      <th>Set</th>
-                      <th>Weight</th>
+                      <th>Time</th>
+                      <th>Set 1</th>
+                      <th>Set 2</th>
+                      <th>Set 3</th>
+                      <th>Set 4</th>
                       <th>Reps</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {exerciseHistory[selectedExercise.id].map((entry, i) => (
-                      entry.sets.map((set) => (
-                        <tr key={`${i}-${set.set_number}`}>
-                          <td>{new Date(entry.date).toLocaleDateString()}</td>
-                          <td>{set.set_number}</td>
-                          <td>{set.weight}</td>
-                          <td>{set.reps}</td>
+                    {exerciseHistory[selectedExercise.id].map((entry, i) => {
+                      const dateObj = new Date(entry.date);
+                      const date = dateObj.toLocaleDateString();
+                      const time = dateObj.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                      const sets = entry.sets;
+                      return (
+                        <tr key={i}>
+                          <td>{date}</td>
+                          <td>{time}</td>
+                          <td>{sets[0]?.weight ?? '-'}</td>
+                          <td>{sets[1]?.weight ?? '-'}</td>
+                          <td>{sets[2]?.weight ?? '-'}</td>
+                          <td>{sets[3]?.weight ?? '-'}</td>
+                          <td>{entry.rep_range || '-'}</td>
                         </tr>
-                      ))
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               ) : (
