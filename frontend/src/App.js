@@ -355,6 +355,16 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
   const [currentDay, setCurrentDay] = useState(null);
   const [currentSessionId, setCurrentSessionId] = useState(null);
 
+  // Rep options dropdown
+  const repOptions = [
+    { value: 8, label: '8 reps' },
+    { value: 10, label: '10 reps' },
+    { value: 12, label: '12 reps' },
+    { value: 14, label: '14 reps' },
+    { value: 15, label: '15 reps' },
+    { value: 20, label: '20 reps' }
+  ];
+
   useEffect(() => {
     if (currentSplit) {
       const day = currentSplit.days.find(d => d.day_number === currentSplit.currentDay);
@@ -373,9 +383,9 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
               exercise_name: exercise.name,
               muscle_group: exercise.muscle_group,
               sets: [
-                { set_number: 1, weight: 0, reps: 0 },
-                { set_number: 2, weight: 0, reps: 0 },
-                { set_number: 3, weight: 0, reps: 0 }
+                { set_number: 1, weight: 0, reps: 12 },
+                { set_number: 2, weight: 0, reps: 12 },
+                { set_number: 3, weight: 0, reps: 12 }
               ],
               completed_count: 0,
               target_completions: 3,
@@ -390,7 +400,11 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
 
   const updateSet = (exerciseIndex, setIndex, field, value) => {
     const updated = [...workoutExercises];
-    updated[exerciseIndex].sets[setIndex][field] = parseFloat(value) || 0;
+    if (field === 'reps') {
+      updated[exerciseIndex].sets[setIndex][field] = parseInt(value) || 12;
+    } else {
+      updated[exerciseIndex].sets[setIndex][field] = parseFloat(value) || 0;
+    }
     setWorkoutExercises(updated);
   };
 
@@ -413,13 +427,13 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
 
       // Show completion message
       if (response.data.is_archived) {
-        alert(`🎉 Exercise completed! "${exercise.exercise_name}" has been moved to archive.`);
+        alert(`🔥 BEAST MODE! "${exercise.exercise_name}" conquered and archived! 💀`);
       } else {
-        alert(`✅ Exercise completed! ${response.data.completed_count}/${exercise.target_completions} completions.`);
+        alert(`💪 REP COMPLETED! ${response.data.completed_count}/${exercise.target_completions} reps done. Keep grinding! ⚡`);
       }
     } catch (error) {
       console.error('Error completing exercise:', error);
-      alert('Error completing exercise');
+      alert('❌ Error completing exercise');
     }
   };
 
@@ -436,10 +450,10 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
       updated[exerciseIndex].is_archived = false;
       setWorkoutExercises(updated);
 
-      alert('Exercise completion reset successfully');
+      alert('🔄 Exercise reset - Back to the grind!');
     } catch (error) {
       console.error('Error resetting exercise:', error);
-      alert('Error resetting exercise completion');
+      alert('❌ Error resetting exercise completion');
     }
   };
 
@@ -455,24 +469,24 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
       setCurrentSessionId(response.data.id);
 
       if (!createSessionOnly) {
-        alert('Workout saved successfully!');
+        alert('💀 Workout logged in the underground archives!');
         setCurrentView('home');
       }
     } catch (error) {
       console.error('Error saving workout:', error);
-      alert('Error saving workout');
+      alert('❌ Error saving workout');
     }
   };
 
   if (!currentDay) {
-    return <div>Loading...</div>;
+    return <div className="loading">🔄 Loading your arsenal...</div>;
   }
 
   // Separate active and archived exercises
   const activeExercises = workoutExercises.filter(ex => !ex.is_archived);
   const archivedExercises = workoutExercises.filter(ex => ex.is_archived);
 
-  const renderExercisesByMuscleGroup = (exercisesToRender, isArchived = false) => {
+  const renderCompactExercises = (exercisesToRender, isArchived = false) => {
     const groupedExercises = exercisesToRender.reduce((acc, exercise) => {
       if (!acc[exercise.muscle_group]) {
         acc[exercise.muscle_group] = [];
@@ -483,109 +497,125 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
 
     return Object.entries(groupedExercises).map(([muscleGroup, groupExercises]) => (
       <div key={`${muscleGroup}-${isArchived ? 'archived' : 'active'}`} className="muscle-group-section">
-        <h2 className="heading-2">{muscleGroup} {isArchived && '(Archived)'}</h2>
+        <h2 className="heading-2">
+          {getMuscleEmoji(muscleGroup)} {muscleGroup} {isArchived && '(💀 Conquered)'}
+        </h2>
         
-        {groupExercises.map((exercise, exerciseIndex) => {
-          const globalIndex = workoutExercises.findIndex(we => 
-            we.exercise_id === exercise.exercise_id && 
-            we.muscle_group === exercise.muscle_group
-          );
-          
-          return (
-            <div key={`${exercise.exercise_id}-${muscleGroup}`} className={`exercise-card ${isArchived ? 'archived' : ''}`}>
-              <div className="exercise-header">
-                <h3 className="heading-3">{exercise.exercise_name}</h3>
-                <div className="exercise-completion">
-                  <span className="completion-count">
-                    {exercise.completed_count}/{exercise.target_completions} completed
-                  </span>
-                  {!isArchived && (
-                    <button
-                      className="btn-complete"
-                      onClick={() => completeExercise(globalIndex)}
-                    >
-                      Complete
-                    </button>
-                  )}
-                  {isArchived && (
-                    <button
-                      className="btn-reset"
-                      onClick={() => resetExerciseCompletion(globalIndex)}
-                    >
-                      Reset
-                    </button>
-                  )}
-                </div>
-              </div>
-              
-              <div className="sets-table">
-                <div className="sets-header">
-                  <span>Set</span>
-                  <span>Weight (lbs)</span>
-                  <span>Reps</span>
+        <div className="compact-exercises-grid">
+          {groupExercises.map((exercise, exerciseIndex) => {
+            const globalIndex = workoutExercises.findIndex(we => 
+              we.exercise_id === exercise.exercise_id && 
+              we.muscle_group === exercise.muscle_group
+            );
+            
+            return (
+              <div key={`${exercise.exercise_id}-${muscleGroup}`} className={`compact-exercise-card ${isArchived ? 'archived' : ''}`}>
+                <div className="exercise-header">
+                  <h3 className="exercise-name">{exercise.exercise_name}</h3>
+                  <div className="exercise-completion">
+                    <span className="completion-count">
+                      {exercise.completed_count}/{exercise.target_completions}
+                    </span>
+                    {!isArchived && (
+                      <button
+                        className="btn-complete"
+                        onClick={() => completeExercise(globalIndex)}
+                      >
+                        ✅ Complete
+                      </button>
+                    )}
+                    {isArchived && (
+                      <button
+                        className="btn-reset"
+                        onClick={() => resetExerciseCompletion(globalIndex)}
+                      >
+                        🔄 Reset
+                      </button>
+                    )}
+                  </div>
                 </div>
                 
-                {exercise.sets.map((set, setIndex) => (
-                  <div key={setIndex} className="set-row">
-                    <span className="set-number">{set.set_number}</span>
-                    <input
-                      type="number"
-                      className="set-input"
-                      value={set.weight}
-                      onChange={(e) => updateSet(globalIndex, setIndex, 'weight', e.target.value)}
-                      placeholder="0"
-                      disabled={isArchived}
-                    />
-                    <input
-                      type="number"
-                      className="set-input"
-                      value={set.reps}
-                      onChange={(e) => updateSet(globalIndex, setIndex, 'reps', e.target.value)}
-                      placeholder="0"
-                      disabled={isArchived}
-                    />
-                  </div>
-                ))}
+                <div className="compact-sets-grid">
+                  {exercise.sets.map((set, setIndex) => (
+                    <div key={setIndex} className="compact-set-row">
+                      <span className="set-number">Set {set.set_number}</span>
+                      <div className="set-inputs">
+                        <input
+                          type="number"
+                          className="weight-input"
+                          value={set.weight}
+                          onChange={(e) => updateSet(globalIndex, setIndex, 'weight', e.target.value)}
+                          placeholder="Weight"
+                          disabled={isArchived}
+                        />
+                        <select
+                          className="reps-select"
+                          value={set.reps}
+                          onChange={(e) => updateSet(globalIndex, setIndex, 'reps', e.target.value)}
+                          disabled={isArchived}
+                        >
+                          {repOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     ));
+  };
+
+  const getMuscleEmoji = (muscleGroup) => {
+    const emojiMap = {
+      'Chest': '💥',
+      'Back': '🦵',
+      'Shoulders': '🔥',
+      'Arms': '💪',
+      'Legs': '🦵',
+      'Core': '⚡'
+    };
+    return emojiMap[muscleGroup] || '💀';
   };
 
   return (
     <div className="workout-view">
       <div className="container">
         <div className="workout-header">
-          <h1 className="heading-1">{currentDay.day_name}</h1>
-          <p className="body-large">Target: {currentDay.muscle_groups.join(', ')}</p>
+          <h1 className="heading-1">💀 {currentDay.day_name}</h1>
+          <p className="body-large">🎯 Target: {currentDay.muscle_groups.join(', ')}</p>
         </div>
 
         <div className="workout-content">
           {/* Active Exercises */}
           {activeExercises.length > 0 && (
             <div className="active-exercises">
-              <h2 className="section-title">Active Exercises</h2>
-              {renderExercisesByMuscleGroup(activeExercises, false)}
+              <h2 className="section-title">⚔️ ACTIVE ARSENAL</h2>
+              {renderCompactExercises(activeExercises, false)}
             </div>
           )}
           
           {/* Archived Exercises */}
           {archivedExercises.length > 0 && (
             <div className="archived-exercises">
-              <h2 className="section-title">Completed Exercises</h2>
-              {renderExercisesByMuscleGroup(archivedExercises, true)}
+              <h2 className="section-title">💀 CONQUERED EXERCISES</h2>
+              {renderCompactExercises(archivedExercises, true)}
             </div>
           )}
         </div>
 
         <div className="workout-actions">
           <button className="btn-secondary" onClick={() => setCurrentView('home')}>
-            Cancel
+            🏠 Back to Base
           </button>
           <button className="btn-primary" onClick={() => saveWorkout(false)}>
-            Save Workout
+            💾 Log Session
           </button>
         </div>
       </div>
