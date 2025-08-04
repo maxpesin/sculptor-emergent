@@ -715,7 +715,7 @@ body {
   justify-content: center;
 }
 
-/* Exercise Archive */
+/* Exercise Archive - Underground Table Style */
 .exercise-archive-view {
   padding: 40px 0;
 }
@@ -728,6 +728,7 @@ body {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .search-input, .filter-select {
@@ -735,49 +736,126 @@ body {
   border: 1px solid var(--border-medium);
   border-radius: 8px;
   font-size: 16px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
 }
 
 .search-input {
   flex: 1;
-  min-width: 200px;
+  min-width: 250px;
 }
 
 .filter-select {
-  min-width: 180px;
+  min-width: 200px;
 }
 
-.exercises-grid {
+.search-input:focus, .filter-select:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.exercises-table {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 24px 0;
+  box-shadow: var(--shadow-dark);
+}
+
+.table-header {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
-  margin: 32px 0;
+  grid-template-columns: 40px 1fr 120px 120px 200px;
+  gap: 16px;
+  padding: 16px;
+  background: var(--bg-elevated);
+  border-bottom: 2px solid var(--border-medium);
+  font-weight: 600;
+  color: var(--text-secondary);
+  align-items: center;
 }
 
-.exercise-info {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.table-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 120px 120px 200px;
+  gap: 16px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-light);
+  transition: all 0.2s ease;
+  align-items: center;
+  cursor: grab;
 }
 
-.exercise-name {
-  font-size: 18px;
+.table-row:hover {
+  background: var(--bg-section);
+  border-left: 4px solid var(--brand-primary);
+}
+
+.table-row.dragging {
+  background: var(--bg-elevated);
+  border: 2px solid var(--brand-primary);
+  box-shadow: var(--shadow-glow);
+  transform: rotate(2deg);
+  cursor: grabbing;
+}
+
+.col-handle {
+  color: var(--text-muted);
+  text-align: center;
+  font-weight: bold;
+  cursor: grab;
+}
+
+.col-exercise {
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.exercise-muscle-group {
-  color: var(--brand-primary);
-  font-weight: 500;
-  font-size: 14px;
-}
-
-.exercise-equipment {
+.col-muscle {
   color: var(--text-secondary);
   font-size: 14px;
 }
 
+.col-equipment {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.col-history {
+  font-size: 12px;
+}
+
+.workout-history {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.history-date {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.history-details {
+  color: var(--brand-primary);
+  font-weight: 600;
+}
+
+.history-completions {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.no-history {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 12px;
+}
+
 .archive-actions {
   display: flex;
+  gap: 16px;
   justify-content: center;
   margin-top: 48px;
 }
