@@ -647,7 +647,13 @@ class WorkoutAPITester:
             if created_session:
                 self.test_get_workout_session_by_id(created_session['id'])
         
-        # Test 6: Cleanup - Delete created split
+        # Test 6: Exercise Completion Tracking (NEW FEATURE)
+        if created_split:
+            completion_success = self.test_completion_tracking_flow(created_split['id'])
+            if not completion_success:
+                print("⚠️  Completion tracking tests failed")
+        
+        # Test 7: Cleanup - Delete created split
         if created_split:
             self.test_delete_workout_split(created_split['id'])
         
