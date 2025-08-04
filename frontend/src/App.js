@@ -628,27 +628,106 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
 const ExerciseArchiveView = ({ exercises, muscleGroups, setCurrentView }) => {
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [exerciseOrder, setExerciseOrder] = useState([]);
+  const [exerciseHistory, setExerciseHistory] = useState({});
 
-  const filteredExercises = exercises.filter(exercise => {
-    const matchesMuscleGroup = !selectedMuscleGroup || exercise.muscle_group === selectedMuscleGroup;
-    const matchesSearch = !searchTerm || 
-      exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      exercise.muscle_group.toLowerCase().includes(searchTerm.toLowerCase());
+  useEffect(() => {
+    setExerciseOrder(exercises.map(ex => ex.id));
+    fetchExerciseHistory();
+  }, [exercises]);
+
+  const fetchExerciseHistory = async () => {
+    try {
+      const response = await axios.get(`${API}/sessions`);
+      const sessions = response.data;
+      
+      // Process sessions to get last workout data for each exercise
+      const history = {};
+      sessions.forEach(session => {
+        session.exercises.forEach(exercise => {
+          if (!history[exercise.exercise_id] || new Date(session.completed_at) > new Date(history[exercise.exercise_id].date)) {
+            history[exercise.exercise_id] = {
+              date: session.completed_at,
+              sets: exercise.sets,
+              completed_count: exercise.completed_count
+            };
+          }
+        });
+      });
+      
+      setExerciseHistory(history);
+    } catch (error) {
+      console.error('Error fetching exercise history:', error);
+    }
+  };
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const items = Array.from(exerciseOrder);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setExerciseOrder(items);
+  };
+
+  const filteredExercises = exercises
+    .filter(exercise => {
+      const matchesMuscleGroup = !selectedMuscleGroup || exercise.muscle_group === selectedMuscleGroup;
+      const matchesSearch = !searchTerm || 
+        exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        exercise.muscle_group.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      return matchesMuscleGroup && matchesSearch;
+    })
+    .sort((a, b) => exerciseOrder.indexOf(a.id) - exerciseOrder.indexOf(b.id));
+
+  const getMuscleEmoji = (muscleGroup) => {
+    const emojiMap = {
+      'Chest': '💥',
+      'Back': '🦾',
+      'Shoulders': '🔥',
+      'Arms': '💪',
+      'Legs': '🦵',
+      'Core': '⚡'
+    };
+    return emojiMap[muscleGroup] || '💀';
+  };
+
+  const getLastWorkoutDisplay = (exercise) => {
+    const history = exerciseHistory[exercise.id];
+    if (!history || !history.sets || history.sets.length === 0) {
+      return <span className="no-history">🆕 No history yet</span>;
+    }
+
+    const lastSet = history.sets[history.sets.length - 1];
+    const date = new Date(history.date).toLocaleDateString();
     
-    return matchesMuscleGroup && matchesSearch;
-  });
+    return (
+      <div className="workout-history">
+        <div className="history-date">📅 {date}</div>
+        <div className="history-details">
+          💪 {lastSet.weight}lbs × {lastSet.reps} reps
+        </div>
+        <div className="history-completions">
+          🔥 {history.completed_count} completions
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="exercise-archive-view">
       <div className="container">
-        <h1 className="heading-1">Exercise Archive</h1>
+        <h1 className="heading-1">📋 UNDERGROUND ARSENAL</h1>
+        <p className="body-large">💀 Drag to reorder your weapon of choice</p>
         
         <div className="archive-filters">
           <div className="filter-group">
             <input
               type="text"
               className="search-input"
-              placeholder="Search exercises..."
+              placeholder="🔍 Search your arsenal..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -658,31 +737,71 @@ const ExerciseArchiveView = ({ exercises, muscleGroups, setCurrentView }) => {
               value={selectedMuscleGroup}
               onChange={(e) => setSelectedMuscleGroup(e.target.value)}
             >
-              <option value="">All Muscle Groups</option>
+              <option value="">💀 All Muscle Groups</option>
               {muscleGroups.map(group => (
-                <option key={group} value={group}>{group}</option>
+                <option key={group} value={group}>
+                  {getMuscleEmoji(group)} {group}
+                </option>
               ))}
             </select>
           </div>
         </div>
 
-        <div className="exercises-grid">
-          {filteredExercises.map(exercise => (
-            <div key={exercise.id} className="exercise-card">
-              <div className="exercise-info">
-                <h3 className="exercise-name">{exercise.name}</h3>
-                <span className="exercise-muscle-group">{exercise.muscle_group}</span>
-                {exercise.equipment && (
-                  <span className="exercise-equipment">{exercise.equipment}</span>
-                )}
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="exercises">
+            {(provided) => (
+              <div
+                className="exercises-table"
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+              >
+                <div className="table-header">
+                  <span className="col-handle">🎯</span>
+                  <span className="col-exercise">💀 Exercise</span>
+                  <span className="col-muscle">🎯 Target</span>
+                  <span className="col-equipment">⚔️ Equipment</span>
+                  <span className="col-history">📊 Last Session</span>
+                </div>
+                
+                {filteredExercises.map((exercise, index) => (
+                  <Draggable key={exercise.id} draggableId={exercise.id} index={index}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className={`table-row ${snapshot.isDragging ? 'dragging' : ''}`}
+                      >
+                        <span className="col-handle">⋮⋮</span>
+                        <span className="col-exercise">
+                          <strong>{exercise.name}</strong>
+                        </span>
+                        <span className="col-muscle">
+                          {getMuscleEmoji(exercise.muscle_group)} {exercise.muscle_group}
+                        </span>
+                        <span className="col-equipment">
+                          {exercise.equipment || '🤲 Bodyweight'}
+                        </span>
+                        <span className="col-history">
+                          {getLastWorkoutDisplay(exercise)}
+                        </span>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                
+                {provided.placeholder}
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </Droppable>
+        </DragDropContext>
 
         <div className="archive-actions">
           <button className="btn-secondary" onClick={() => setCurrentView('home')}>
-            Back to Home
+            🏠 Back to Base
+          </button>
+          <button className="btn-primary" onClick={() => window.location.reload()}>
+            🔄 Refresh Arsenal
           </button>
         </div>
       </div>
