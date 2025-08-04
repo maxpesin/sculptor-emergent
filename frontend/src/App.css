@@ -860,7 +860,7 @@ body {
   margin-top: 48px;
 }
 
-/* Mobile Responsiveness */
+/* Mobile Responsiveness - Underground Theme */
 @media (max-width: 809px) {
   .nav-header {
     padding: 16px;
@@ -920,6 +920,14 @@ body {
     flex-direction: column;
   }
 
+  .search-input {
+    min-width: 100%;
+  }
+
+  .filter-select {
+    min-width: 100%;
+  }
+
   .form-actions {
     flex-direction: column;
   }
@@ -929,21 +937,16 @@ body {
     align-items: center;
   }
 
-  .sets-header, .set-row {
-    grid-template-columns: 50px 1fr 1fr;
-    gap: 8px;
-  }
-
-  .exercises-grid {
+  /* Mobile-specific styles for compact workout view */
+  .compact-exercises-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 12px;
   }
 
-  /* Mobile-specific styles for completion features */
   .exercise-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 8px;
   }
 
   .exercise-completion {
@@ -952,18 +955,84 @@ body {
   }
 
   .completion-count {
-    font-size: 12px;
-    padding: 6px 10px;
+    font-size: 11px;
+    padding: 3px 6px;
   }
 
   .btn-complete, .btn-reset {
-    padding: 6px 12px;
+    padding: 4px 8px;
+    font-size: 11px;
+    min-height: 24px;
+  }
+
+  .compact-set-row {
+    padding: 6px;
+  }
+
+  .set-number {
+    min-width: 50px;
     font-size: 12px;
-    min-height: 32px;
+  }
+
+  .weight-input, .reps-select {
+    padding: 4px 6px;
+    font-size: 12px;
   }
 
   .section-title {
     font-size: clamp(18px, 4vw, 24px);
     margin: 24px 0 16px 0;
+  }
+
+  /* Mobile table styles for exercise archive */
+  .exercises-table {
+    overflow-x: auto;
+  }
+
+  .table-header, .table-row {
+    grid-template-columns: 30px 150px 80px 80px 120px;
+    gap: 8px;
+    padding: 12px 8px;
+    font-size: 12px;
+  }
+
+  .col-handle {
+    font-size: 12px;
+  }
+
+  .col-exercise {
+    font-size: 13px;
+  }
+
+  .col-muscle, .col-equipment {
+    font-size: 11px;
+  }
+
+  .col-history {
+    font-size: 10px;
+  }
+
+  .workout-history {
+    gap: 2px;
+  }
+
+  .history-date {
+    font-size: 9px;
+  }
+
+  .history-details {
+    font-size: 10px;
+  }
+
+  .history-completions {
+    font-size: 9px;
+  }
+
+  .no-history {
+    font-size: 10px;
+  }
+
+  .brand-display {
+    font-size: clamp(18px, 5vw, 24px);
   }
 }
