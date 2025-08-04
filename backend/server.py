@@ -242,6 +242,71 @@ async def get_workout_session(session_id: str):
         raise HTTPException(status_code=404, detail="Workout session not found")
     return WorkoutSession(**session)
 
+@api_router.patch("/sessions/{session_id}/exercises/{exercise_id}/complete")
+async def complete_exercise(session_id: str, exercise_id: str):
+    """Mark an exercise as completed and handle archiving logic"""
+    session = await db.workout_sessions.find_one({"id": session_id})
+    if not session:
+        raise HTTPException(status_code=404, detail="Workout session not found")
+    
+    # Find the exercise in the session
+    session_obj = WorkoutSession(**session)
+    exercise_found = False
+    
+    for exercise in session_obj.exercises:
+        if exercise.exercise_id == exercise_id:
+            exercise_found = True
+            exercise.completed_count += 1
+            
+            # Check if exercise should be archived
+            if exercise.completed_count >= exercise.target_completions:
+                exercise.is_archived = True
+            break
+    
+    if not exercise_found:
+        raise HTTPException(status_code=404, detail="Exercise not found in session")
+    
+    # Update the session in database
+    await db.workout_sessions.replace_one({"id": session_id}, session_obj.dict())
+    
+    return {
+        "message": "Exercise completed successfully",
+        "exercise_id": exercise_id,
+        "completed_count": exercise.completed_count,
+        "is_archived": exercise.is_archived
+    }
+
+@api_router.patch("/sessions/{session_id}/exercises/{exercise_id}/reset")
+async def reset_exercise_completion(session_id: str, exercise_id: str):
+    """Reset exercise completion count (useful for testing or mistakes)"""
+    session = await db.workout_sessions.find_one({"id": session_id})
+    if not session:
+        raise HTTPException(status_code=404, detail="Workout session not found")
+    
+    # Find the exercise in the session
+    session_obj = WorkoutSession(**session)
+    exercise_found = False
+    
+    for exercise in session_obj.exercises:
+        if exercise.exercise_id == exercise_id:
+            exercise_found = True
+            exercise.completed_count = 0
+            exercise.is_archived = False
+            break
+    
+    if not exercise_found:
+        raise HTTPException(status_code=404, detail="Exercise not found in session")
+    
+    # Update the session in database
+    await db.workout_sessions.replace_one({"id": session_id}, session_obj.dict())
+    
+    return {
+        "message": "Exercise completion reset successfully",
+        "exercise_id": exercise_id,
+        "completed_count": 0,
+        "is_archived": False
+    }
+
 # Template routes for common workout splits
 @api_router.get("/templates")
 async def get_workout_templates():
