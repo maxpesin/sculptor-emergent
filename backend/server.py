@@ -49,6 +49,9 @@ class WorkoutExercise(BaseModel):
     exercise_id: str
     exercise_name: str
     sets: List[Set] = []
+    completed_count: int = 0
+    target_completions: int = 3
+    is_archived: bool = False
 
 class WorkoutDay(BaseModel):
     day_number: int
