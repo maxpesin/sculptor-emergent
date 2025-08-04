@@ -56,7 +56,7 @@ body {
   --shadow-bronze: 0 4px 15px rgba(212, 175, 55, 0.2);
 }
 
-/* Typography - Underground Style */
+/* Typography - Roman Gladiator Style */
 .brand-display {
   font-family: 'Instrument Serif', serif;
   font-style: italic;
@@ -64,7 +64,8 @@ body {
   line-height: 1.1em;
   color: var(--brand-primary);
   margin: 0;
-  text-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+  text-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+  letter-spacing: 1px;
 }
 
 .heading-1 {
@@ -75,6 +76,7 @@ body {
   letter-spacing: -0.02em;
   margin-bottom: 24px;
   color: var(--text-primary);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
 }
 
 .heading-2 {
