@@ -25,13 +25,50 @@ A comprehensive workout tracking application with Roman gladiator theming, featu
 
 ### Prerequisites
 
-- Node.js (v14+)
-- Python (v3.8+)
-- MongoDB
-- Yarn
+- Node.js (v14+) - [Download](https://nodejs.org/)
+- Python (v3.8+) - [Download](https://python.org/)
+- MongoDB - [Download](https://www.mongodb.com/try/download/community) *OR* use MongoDB Atlas (cloud)
+- Yarn - Will be auto-installed if missing
 
-### Option 1: Automated Setup (Recommended)
+### Windows Setup (Recommended)
 
+#### Option 1: Batch Script (Easy)
+```cmd
+# Double-click start.bat or run in Command Prompt
+start.bat
+```
+
+#### Option 2: PowerShell Script (Advanced)
+```powershell
+# Right-click > "Run with PowerShell" or run in PowerShell
+powershell -ExecutionPolicy Bypass -File start.ps1
+```
+
+#### Option 3: Manual Windows Setup
+```cmd
+# Create MongoDB data directory
+mkdir data\db
+
+# Install backend dependencies
+cd backend
+pip install -r requirements.txt
+cd ..
+
+# Install frontend dependencies
+cd frontend
+yarn install
+cd ..
+
+# Install development tools
+npm install
+
+# Start all services
+npm run dev
+```
+
+### Linux/Mac Setup
+
+#### Option 1: Automated Setup (Recommended)
 ```bash
 # Make the start script executable
 chmod +x start.sh
@@ -40,47 +77,32 @@ chmod +x start.sh
 ./start.sh
 ```
 
-This will:
-- Check all prerequisites
-- Install all dependencies
-- Create MongoDB data directory
-- Start all services concurrently
-
-### Option 2: Manual Setup
-
-1. **Install Dependencies**
+#### Option 2: Manual Setup
 ```bash
 # Install all dependencies
-npm run setup
+npm run setup:unix
 
-# Or install individually
-npm run backend:install
-npm run frontend:install
-```
-
-2. **Start Services**
-```bash
-# Start all services (MongoDB, Backend, Frontend)
+# Start all services
 npm run dev
-
-# Or start individually
-npm run db:start      # MongoDB
-npm run backend:dev   # FastAPI server
-npm run frontend:dev  # React dev server
 ```
 
-3. **Access the Application**
-- 💪 Frontend: http://localhost:3000
-- ⚔️ Backend API: http://localhost:8001
-- 📊 MongoDB: mongodb://localhost:27017
+### Stopping the Application
 
-## 🎮 Application Flow
+**Windows:**
+```cmd
+# Double-click stop.bat or run:
+stop.bat
+# Or PowerShell:
+stop.ps1
+# Or press Ctrl+C if running npm run dev
+```
 
-1. **Enter the Colosseum**: Full-screen hero welcome
-2. **Create Training Regimen**: Design your workout split
-3. **Battle in the Arena**: Track exercises with weight selection
-4. **Study the Codex**: Browse and reorder exercises
-5. **Record Victory**: Save workout sessions with history
+**Linux/Mac:**
+```bash
+# Run the stop script
+./stop.sh
+# Or press Ctrl+C if running npm run dev
+```
 
 ## 📁 Project Structure
 
