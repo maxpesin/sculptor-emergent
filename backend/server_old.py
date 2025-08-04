@@ -1,10 +1,9 @@
 from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
-import json
-import asyncio
 from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
@@ -15,65 +14,16 @@ from datetime import datetime
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# Configure logging first
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-# JSON file storage paths
-DATA_DIR = ROOT_DIR.parent / 'data' / 'json'
-DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-EXERCISES_FILE = DATA_DIR / 'exercises.json'
-SPLITS_FILE = DATA_DIR / 'splits.json'
-SESSIONS_FILE = DATA_DIR / 'sessions.json'
+# MongoDB connection
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ.get('DB_NAME', 'sculptor_workout_db')]
 
 # Create the main app without a prefix
 app = FastAPI()
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
-
-# JSON Database Helper Functions
-class JSONDatabase:
-    @staticmethod
-    def load_json(file_path: Path, default_data: list = None):
-        if default_data is None:
-            default_data = []
-        try:
-            if file_path.exists():
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            else:
-                return default_data
-        except (json.JSONDecodeError, FileNotFoundError):
-            return default_data
-    
-    @staticmethod
-    def save_json(file_path: Path, data: list):
-        try:
-            with open(file_path, 'w', encoding='utf-8') as f:
-                json.dump(data, f, indent=2, ensure_ascii=False, default=str)
-            return True
-        except Exception as e:
-            logger.error(f"Error saving to {file_path}: {e}")
-            return False
-    
-    @staticmethod
-    def find_by_id(data: list, item_id: str):
-        return next((item for item in data if item.get('id') == item_id), None)
-    
-    @staticmethod
-    def filter_by(data: list, **filters):
-        result = data
-        for key, value in filters.items():
-            if value is not None:
-                result = [item for item in result if item.get(key) == value]
-        return result
-
-db = JSONDatabase()
 
 
 # Define Models
@@ -195,119 +145,99 @@ PREDEFINED_EXERCISES = [
 @app.on_event("startup")
 async def startup_event():
     # Check if exercises already exist
-    existing_exercises = db.load_json(EXERCISES_FILE, [])
-    if len(existing_exercises) == 0:
+    existing_exercises = await db.exercises.count_documents({})
+    if existing_exercises == 0:
         # Insert predefined exercises
         exercises_to_insert = []
         for exercise_data in PREDEFINED_EXERCISES:
             exercise = Exercise(**exercise_data)
             exercises_to_insert.append(exercise.dict())
-        db.save_json(EXERCISES_FILE, exercises_to_insert)
-        logger.info(f"Inserted {len(exercises_to_insert)} exercises into JSON database")
+        await db.exercises.insert_many(exercises_to_insert)
+        logger.info(f"Inserted {len(exercises_to_insert)} exercises into database")
 
 # Exercise routes
 @api_router.get("/exercises", response_model=List[Exercise])
 async def get_exercises(muscle_group: Optional[str] = None):
-    exercises_data = db.load_json(EXERCISES_FILE, [])
+    query = {}
     if muscle_group:
-        exercises_data = db.filter_by(exercises_data, muscle_group=muscle_group)
-    return [Exercise(**exercise) for exercise in exercises_data]
+        query["muscle_group"] = muscle_group
+    exercises = await db.exercises.find(query).to_list(1000)
+    return [Exercise(**exercise) for exercise in exercises]
 
 @api_router.post("/exercises", response_model=Exercise)
 async def create_exercise(exercise: ExerciseCreate):
     exercise_obj = Exercise(**exercise.dict())
-    exercises_data = db.load_json(EXERCISES_FILE, [])
-    exercises_data.append(exercise_obj.dict())
-    db.save_json(EXERCISES_FILE, exercises_data)
+    await db.exercises.insert_one(exercise_obj.dict())
     return exercise_obj
 
 @api_router.get("/exercises/{exercise_id}", response_model=Exercise)
 async def get_exercise(exercise_id: str):
-    exercises_data = db.load_json(EXERCISES_FILE, [])
-    exercise = db.find_by_id(exercises_data, exercise_id)
+    exercise = await db.exercises.find_one({"id": exercise_id})
     if not exercise:
         raise HTTPException(status_code=404, detail="Exercise not found")
     return Exercise(**exercise)
 
 @api_router.get("/muscle-groups")
 async def get_muscle_groups():
-    exercises_data = db.load_json(EXERCISES_FILE, [])
-    muscle_groups = list(set(exercise.get('muscle_group') for exercise in exercises_data))
-    return sorted(muscle_groups)
+    # Get unique muscle groups from exercises
+    pipeline = [
+        {"$group": {"_id": "$muscle_group"}},
+        {"$sort": {"_id": 1}}
+    ]
+    muscle_groups = await db.exercises.aggregate(pipeline).to_list(1000)
+    return [group["_id"] for group in muscle_groups]
 
 # Workout Split routes
 @api_router.get("/splits", response_model=List[WorkoutSplit])
 async def get_workout_splits():
-    splits_data = db.load_json(SPLITS_FILE, [])
-    # Sort by created_at descending
-    splits_data.sort(key=lambda x: x.get('created_at', ''), reverse=True)
-    return [WorkoutSplit(**split) for split in splits_data]
+    splits = await db.workout_splits.find().sort("created_at", -1).to_list(1000)
+    return [WorkoutSplit(**split) for split in splits]
 
 @api_router.post("/splits", response_model=WorkoutSplit)
 async def create_workout_split(split: WorkoutSplitCreate):
     split_obj = WorkoutSplit(**split.dict())
-    splits_data = db.load_json(SPLITS_FILE, [])
-    splits_data.append(split_obj.dict())
-    db.save_json(SPLITS_FILE, splits_data)
+    await db.workout_splits.insert_one(split_obj.dict())
     return split_obj
 
 @api_router.get("/splits/{split_id}", response_model=WorkoutSplit)
 async def get_workout_split(split_id: str):
-    splits_data = db.load_json(SPLITS_FILE, [])
-    split = db.find_by_id(splits_data, split_id)
+    split = await db.workout_splits.find_one({"id": split_id})
     if not split:
         raise HTTPException(status_code=404, detail="Workout split not found")
     return WorkoutSplit(**split)
 
 @api_router.put("/splits/{split_id}", response_model=WorkoutSplit)
 async def update_workout_split(split_id: str, split_update: WorkoutSplitCreate):
-    splits_data = db.load_json(SPLITS_FILE, [])
-    existing_split = db.find_by_id(splits_data, split_id)
+    existing_split = await db.workout_splits.find_one({"id": split_id})
     if not existing_split:
         raise HTTPException(status_code=404, detail="Workout split not found")
     
     updated_split = WorkoutSplit(id=split_id, **split_update.dict())
-    # Replace the existing split
-    for i, split in enumerate(splits_data):
-        if split.get('id') == split_id:
-            splits_data[i] = updated_split.dict()
-            break
-    
-    db.save_json(SPLITS_FILE, splits_data)
+    await db.workout_splits.replace_one({"id": split_id}, updated_split.dict())
     return updated_split
 
 @api_router.delete("/splits/{split_id}")
 async def delete_workout_split(split_id: str):
-    splits_data = db.load_json(SPLITS_FILE, [])
-    original_length = len(splits_data)
-    splits_data = [split for split in splits_data if split.get('id') != split_id]
-    
-    if len(splits_data) == original_length:
+    result = await db.workout_splits.delete_one({"id": split_id})
+    if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Workout split not found")
-    
-    db.save_json(SPLITS_FILE, splits_data)
     return {"message": "Workout split deleted successfully"}
 
 # Workout Session routes
 @api_router.get("/sessions", response_model=List[WorkoutSession])
 async def get_workout_sessions():
-    sessions_data = db.load_json(SESSIONS_FILE, [])
-    # Sort by completed_at descending
-    sessions_data.sort(key=lambda x: x.get('completed_at', ''), reverse=True)
-    return [WorkoutSession(**session) for session in sessions_data]
+    sessions = await db.workout_sessions.find().sort("completed_at", -1).to_list(1000)
+    return [WorkoutSession(**session) for session in sessions]
 
 @api_router.post("/sessions", response_model=WorkoutSession)
 async def create_workout_session(session: WorkoutSessionCreate):
     session_obj = WorkoutSession(**session.dict())
-    sessions_data = db.load_json(SESSIONS_FILE, [])
-    sessions_data.append(session_obj.dict())
-    db.save_json(SESSIONS_FILE, sessions_data)
+    await db.workout_sessions.insert_one(session_obj.dict())
     return session_obj
 
 @api_router.get("/sessions/{session_id}", response_model=WorkoutSession)
 async def get_workout_session(session_id: str):
-    sessions_data = db.load_json(SESSIONS_FILE, [])
-    session = db.find_by_id(sessions_data, session_id)
+    session = await db.workout_sessions.find_one({"id": session_id})
     if not session:
         raise HTTPException(status_code=404, detail="Workout session not found")
     return WorkoutSession(**session)
@@ -315,8 +245,7 @@ async def get_workout_session(session_id: str):
 @api_router.patch("/sessions/{session_id}/exercises/{exercise_id}/complete")
 async def complete_exercise(session_id: str, exercise_id: str):
     """Mark an exercise as completed and handle archiving logic"""
-    sessions_data = db.load_json(SESSIONS_FILE, [])
-    session = db.find_by_id(sessions_data, session_id)
+    session = await db.workout_sessions.find_one({"id": session_id})
     if not session:
         raise HTTPException(status_code=404, detail="Workout session not found")
     
@@ -337,13 +266,8 @@ async def complete_exercise(session_id: str, exercise_id: str):
     if not exercise_found:
         raise HTTPException(status_code=404, detail="Exercise not found in session")
     
-    # Update the session in the data
-    for i, s in enumerate(sessions_data):
-        if s.get('id') == session_id:
-            sessions_data[i] = session_obj.dict()
-            break
-    
-    db.save_json(SESSIONS_FILE, sessions_data)
+    # Update the session in database
+    await db.workout_sessions.replace_one({"id": session_id}, session_obj.dict())
     
     return {
         "message": "Exercise completed successfully",
@@ -355,8 +279,7 @@ async def complete_exercise(session_id: str, exercise_id: str):
 @api_router.patch("/sessions/{session_id}/exercises/{exercise_id}/reset")
 async def reset_exercise_completion(session_id: str, exercise_id: str):
     """Reset exercise completion count (useful for testing or mistakes)"""
-    sessions_data = db.load_json(SESSIONS_FILE, [])
-    session = db.find_by_id(sessions_data, session_id)
+    session = await db.workout_sessions.find_one({"id": session_id})
     if not session:
         raise HTTPException(status_code=404, detail="Workout session not found")
     
@@ -374,13 +297,8 @@ async def reset_exercise_completion(session_id: str, exercise_id: str):
     if not exercise_found:
         raise HTTPException(status_code=404, detail="Exercise not found in session")
     
-    # Update the session in the data
-    for i, s in enumerate(sessions_data):
-        if s.get('id') == session_id:
-            sessions_data[i] = session_obj.dict()
-            break
-    
-    db.save_json(SESSIONS_FILE, sessions_data)
+    # Update the session in database
+    await db.workout_sessions.replace_one({"id": session_id}, session_obj.dict())
     
     return {
         "message": "Exercise completion reset successfully",
@@ -489,3 +407,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
