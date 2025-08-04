@@ -27,8 +27,9 @@ A comprehensive workout tracking application with Roman gladiator theming, featu
 
 - Node.js (v14+) - [Download](https://nodejs.org/)
 - Python (v3.8+) - [Download](https://python.org/)
-- MongoDB - [Download](https://www.mongodb.com/try/download/community) *OR* use MongoDB Atlas (cloud)
 - Yarn - Will be auto-installed if missing
+
+**No database installation needed! Uses JSON file storage.**
 
 ### Windows Setup (Recommended)
 
