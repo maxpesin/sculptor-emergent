@@ -192,21 +192,12 @@ The application is fully responsive with:
 - Swipe gestures for navigation
 - Optimized for gladiator training on-the-go
 
-## 🛑 Stopping the Application
-
-```bash
-# Stop all services
-./stop.sh
-
-# Or use Ctrl+C if running npm run dev
-```
-
 ## 🔧 Development Scripts
 
+**Cross-Platform:**
 ```bash
 npm run dev              # Start all services
 npm run start            # Alias for dev
-npm run setup            # Initial setup
 npm run install:all      # Install all dependencies
 npm run backend:dev      # Start only backend
 npm run frontend:dev     # Start only frontend
@@ -214,6 +205,34 @@ npm run db:start         # Start only MongoDB
 npm run build           # Build for production
 npm run test:backend    # Run backend tests
 npm run test:frontend   # Run frontend tests
+```
+
+**Windows-Specific:**
+```cmd
+npm run setup            # Windows setup
+npm run win:start        # Run start.bat
+npm run win:stop         # Run stop.bat
+npm run win:setup        # Run PowerShell setup
+```
+
+**Linux/Mac-Specific:**
+```bash
+npm run setup:unix       # Unix setup
+chmod +x start.sh && ./start.sh    # Automated start
+```
+
+## 🛑 Stopping the Application
+
+**Windows:**
+- Double-click `stop.bat`
+- Or run `stop.ps1` in PowerShell
+- Or use `Ctrl+C` if running `npm run dev`
+
+**Linux/Mac:**
+```bash
+# Stop all services
+./stop.sh
+# Or use Ctrl+C if running npm run dev
 ```
 
 ## 🏛️ Environment Variables
