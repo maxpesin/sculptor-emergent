@@ -1059,14 +1059,13 @@ body {
     max-width: 280px;
   }
 
-  .gladiator-exercises-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+  /* Mobile workout view fixes */
+  .stacked-exercises-container {
+    gap: 12px;
   }
 
-  .horizontal-sets-container {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+  .stacked-exercise-card {
+    padding: 16px;
   }
 
   .exercise-header {
@@ -1075,13 +1074,38 @@ body {
     gap: 12px;
   }
 
-  .exercise-controls {
-    flex-direction: row;
-    justify-content: space-between;
+  .exercise-info {
+    min-width: auto;
+  }
+
+  .rep-range-select {
+    min-width: auto;
+    width: 100%;
   }
 
   .completion-tracker {
+    flex-direction: row;
     justify-content: space-between;
+    align-items: center;
+  }
+
+  .horizontal-sets-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .horizontal-set-card {
+    padding: 10px;
+  }
+
+  .set-header {
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+
+  .weight-select {
+    font-size: 13px;
+    padding: 6px 4px;
   }
 
   .arena-actions {
