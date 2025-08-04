@@ -343,6 +343,37 @@ body {
 .splits-section {
   padding: 60px 0;
   background: var(--bg-page);
+  min-height: 100vh;
+}
+
+.splits-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 48px;
+  padding: 32px;
+  background: var(--bg-card);
+  border: 2px solid var(--border-medium);
+  border-radius: 16px;
+  box-shadow: var(--shadow-dark);
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.splits-title {
+  font-family: 'Satoshi Variable', sans-serif;
+  font-variation-settings: "wght" 700;
+  font-size: clamp(28px, 4vw, 48px);
+  line-height: 1.1;
+  color: var(--brand-primary);
+  margin: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.splits-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .gladiator-splits-grid {
