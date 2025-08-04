@@ -234,12 +234,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Exercise Database Management"
-    - "Workout Split Creation and Management"
-    - "Workout Session Tracking"
     - "Home Page and Navigation"
     - "Workout Split Creation Interface"
     - "Workout Session Interface"
+    - "Exercise Archive Browser"
+    - "Responsive Design and Styling"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
