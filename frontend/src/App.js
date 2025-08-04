@@ -108,26 +108,58 @@ const HomeView = ({ setCurrentView, workoutSplits, setCurrentSplit }) => {
     setCurrentView('workout');
   };
 
+  // Show hero if no splits, show splits if they exist
+  const showHeroOnly = workoutSplits.length === 0;
+
+  if (showHeroOnly) {
+    return (
+      <div className="home-view">
+        <section className="hero-section">
+          <div className="hero-content">
+            <h1 className="hero-title">⚔️ FORGE YOUR LEGEND</h1>
+            <p className="hero-subtitle">
+              "Discipline is the soul of an army. Train like a gladiator, fight like a champion."
+            </p>
+            <div className="hero-actions">
+              <button 
+                className="btn-primary"
+                onClick={() => setCurrentView('create-split')}
+              >
+                🏛️ Create Training Regimen
+              </button>
+              <button 
+                className="btn-secondary"
+                onClick={() => setCurrentView('exercise-archive')}
+              >
+                📜 Study the Codex
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="home-view">
-      <section className="hero-section">
+      <section className="hero-section-compact">
         <div className="hero-content">
-          <h1 className="hero-title">💪 UNDERGROUND TRAINING</h1>
+          <h1 className="hero-title">⚔️ GLADIATOR'S ARENA</h1>
           <p className="hero-subtitle">
-            No bullsh*t. No excuses. Just pure iron and gains in the darkness.
+            Choose your training regimen and forge your destiny
           </p>
           <div className="hero-actions">
             <button 
               className="btn-primary"
               onClick={() => setCurrentView('create-split')}
             >
-              🔥 Create New Split
+              🏛️ Create New Regimen
             </button>
             <button 
               className="btn-secondary"
               onClick={() => setCurrentView('exercise-archive')}
             >
-              📚 Browse Arsenal
+              📜 Browse Codex
             </button>
           </div>
         </div>
@@ -135,41 +167,32 @@ const HomeView = ({ setCurrentView, workoutSplits, setCurrentSplit }) => {
 
       <section className="splits-section">
         <div className="container">
-          <h2 className="heading-2">⚔️ Your Training Splits</h2>
-          {workoutSplits.length > 0 ? (
-            <div className="company-grid">
-              {workoutSplits.map(split => (
-                <div key={split.id} className="service-card">
-                  <div className="service-card-title">💀 {split.name}</div>
-                  <div className="service-card-description">
+          <h2 className="heading-2">🏛️ Your Training Regimens</h2>
+          <div className="gladiator-splits-grid">
+            {workoutSplits.map(split => (
+              <div key={split.id} className="gladiator-split-card">
+                <div className="split-header">
+                  <div className="split-title">⚔️ {split.name}</div>
+                  <div className="split-description">
                     🗓️ {split.days_per_week} days per week
                   </div>
-                  <div className="split-days">
-                    {split.days.map(day => (
-                      <button
-                        key={day.day_number}
-                        className="btn-secondary day-button"
-                        onClick={() => handleStartWorkout(split, day.day_number)}
-                      >
-                        💥 Day {day.day_number}: {day.day_name}
-                      </button>
-                    ))}
-                  </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="empty-state">
-              <p className="body-large">🎯 No training splits created yet</p>
-              <p className="body-medium">Time to build your underground arsenal</p>
-              <button 
-                className="btn-primary"
-                onClick={() => setCurrentView('create-split')}
-              >
-                🔥 Create Your First Split
-              </button>
-            </div>
-          )}
+                <div className="split-days-grid">
+                  {split.days.map(day => (
+                    <button
+                      key={day.day_number}
+                      className="gladiator-day-button"
+                      onClick={() => handleStartWorkout(split, day.day_number)}
+                    >
+                      <div className="day-number">Day {day.day_number}</div>
+                      <div className="day-name">{day.day_name}</div>
+                      <div className="day-muscles">{day.muscle_groups.join(' • ')}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
     </div>
