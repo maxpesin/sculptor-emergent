@@ -425,6 +425,164 @@ class WorkoutAPITester:
             self.log_test("Get Workout Session by ID", False, f"Request failed: {str(e)}")
             return None
     
+    def test_create_session_with_completion_tracking(self, split_id):
+        """Test creating a session with completion tracking fields"""
+        try:
+            new_session = {
+                "split_id": split_id,
+                "day_number": 1,
+                "exercises": [
+                    {
+                        "exercise_id": "bench-press-completion-test",
+                        "exercise_name": "Bench Press",
+                        "sets": [
+                            {"set_number": 1, "weight": 135.0, "reps": 10}
+                        ],
+                        "completed_count": 0,
+                        "target_completions": 3,
+                        "is_archived": False
+                    },
+                    {
+                        "exercise_id": "incline-press-completion-test",
+                        "exercise_name": "Incline Dumbbell Press",
+                        "sets": [
+                            {"set_number": 1, "weight": 60.0, "reps": 12}
+                        ],
+                        "completed_count": 0,
+                        "target_completions": 3,
+                        "is_archived": False
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{self.base_url}/sessions", json=new_session)
+            if response.status_code == 200:
+                created_session = response.json()
+                if 'id' in created_session:
+                    # Verify completion tracking fields are present
+                    for exercise in created_session['exercises']:
+                        if not all(field in exercise for field in ['completed_count', 'target_completions', 'is_archived']):
+                            self.log_test("Create Session with Completion Tracking", False, "Missing completion tracking fields")
+                            return None
+                        if exercise['completed_count'] != 0 or exercise['target_completions'] != 3 or exercise['is_archived'] != False:
+                            self.log_test("Create Session with Completion Tracking", False, "Incorrect default completion tracking values")
+                            return None
+                    
+                    self.created_resources['sessions'].append(created_session['id'])
+                    self.log_test("Create Session with Completion Tracking", True, f"Created session with completion tracking for {len(created_session['exercises'])} exercises")
+                    return created_session
+                else:
+                    self.log_test("Create Session with Completion Tracking", False, "Session created but missing ID")
+                    return None
+            else:
+                self.log_test("Create Session with Completion Tracking", False, f"API returned status {response.status_code}")
+                return None
+        except Exception as e:
+            self.log_test("Create Session with Completion Tracking", False, f"Request failed: {str(e)}")
+            return None
+    
+    def test_complete_exercise(self, session_id, exercise_id):
+        """Test PATCH /api/sessions/{session_id}/exercises/{exercise_id}/complete"""
+        try:
+            response = self.session.patch(f"{self.base_url}/sessions/{session_id}/exercises/{exercise_id}/complete")
+            if response.status_code == 200:
+                result = response.json()
+                expected_fields = ['message', 'exercise_id', 'completed_count', 'is_archived']
+                if all(field in result for field in expected_fields):
+                    if result['exercise_id'] == exercise_id:
+                        self.log_test("Complete Exercise", True, f"Exercise completed. Count: {result['completed_count']}, Archived: {result['is_archived']}")
+                        return result
+                    else:
+                        self.log_test("Complete Exercise", False, "Exercise ID mismatch in response")
+                        return None
+                else:
+                    self.log_test("Complete Exercise", False, "Missing required fields in response")
+                    return None
+            elif response.status_code == 404:
+                self.log_test("Complete Exercise", False, "Session or exercise not found (404)")
+                return None
+            else:
+                self.log_test("Complete Exercise", False, f"API returned status {response.status_code}")
+                return None
+        except Exception as e:
+            self.log_test("Complete Exercise", False, f"Request failed: {str(e)}")
+            return None
+    
+    def test_reset_exercise_completion(self, session_id, exercise_id):
+        """Test PATCH /api/sessions/{session_id}/exercises/{exercise_id}/reset"""
+        try:
+            response = self.session.patch(f"{self.base_url}/sessions/{session_id}/exercises/{exercise_id}/reset")
+            if response.status_code == 200:
+                result = response.json()
+                expected_fields = ['message', 'exercise_id', 'completed_count', 'is_archived']
+                if all(field in result for field in expected_fields):
+                    if result['exercise_id'] == exercise_id and result['completed_count'] == 0 and result['is_archived'] == False:
+                        self.log_test("Reset Exercise Completion", True, f"Exercise reset successfully. Count: {result['completed_count']}, Archived: {result['is_archived']}")
+                        return result
+                    else:
+                        self.log_test("Reset Exercise Completion", False, "Exercise not properly reset")
+                        return None
+                else:
+                    self.log_test("Reset Exercise Completion", False, "Missing required fields in response")
+                    return None
+            elif response.status_code == 404:
+                self.log_test("Reset Exercise Completion", False, "Session or exercise not found (404)")
+                return None
+            else:
+                self.log_test("Reset Exercise Completion", False, f"API returned status {response.status_code}")
+                return None
+        except Exception as e:
+            self.log_test("Reset Exercise Completion", False, f"Request failed: {str(e)}")
+            return None
+    
+    def test_completion_tracking_flow(self, split_id):
+        """Test complete exercise completion tracking flow"""
+        print("\n🎯 Testing Exercise Completion Tracking Flow...")
+        
+        # Create a session with completion tracking
+        session = self.test_create_session_with_completion_tracking(split_id)
+        if not session:
+            return False
+        
+        session_id = session['id']
+        exercise_id = session['exercises'][0]['exercise_id']  # Use first exercise
+        
+        # Test completing exercise multiple times until archived
+        completion_results = []
+        for i in range(1, 4):  # Complete 3 times (should archive on 3rd)
+            result = self.test_complete_exercise(session_id, exercise_id)
+            if result:
+                completion_results.append(result)
+                expected_archived = (i >= 3)  # Should be archived after 3rd completion
+                if result['completed_count'] == i and result['is_archived'] == expected_archived:
+                    self.log_test(f"Completion {i}/3", True, f"Correct completion count and archive status")
+                else:
+                    self.log_test(f"Completion {i}/3", False, f"Expected count {i}, archived {expected_archived}, got count {result['completed_count']}, archived {result['is_archived']}")
+            else:
+                self.log_test(f"Completion {i}/3", False, "Failed to complete exercise")
+                return False
+        
+        # Verify final state - should be archived after 3 completions
+        if completion_results and completion_results[-1]['is_archived']:
+            self.log_test("Exercise Archiving", True, "Exercise correctly archived after 3 completions")
+        else:
+            self.log_test("Exercise Archiving", False, "Exercise not archived after 3 completions")
+            return False
+        
+        # Test reset functionality
+        reset_result = self.test_reset_exercise_completion(session_id, exercise_id)
+        if reset_result:
+            # Verify exercise can be completed again after reset
+            post_reset_completion = self.test_complete_exercise(session_id, exercise_id)
+            if post_reset_completion and post_reset_completion['completed_count'] == 1 and not post_reset_completion['is_archived']:
+                self.log_test("Post-Reset Completion", True, "Exercise can be completed again after reset")
+                return True
+            else:
+                self.log_test("Post-Reset Completion", False, "Exercise not working properly after reset")
+                return False
+        else:
+            return False
+    
     def test_delete_workout_split(self, split_id):
         """Test DELETE /api/splits/{split_id}"""
         try:
