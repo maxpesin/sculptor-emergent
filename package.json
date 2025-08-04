@@ -3,10 +3,8 @@
   "version": "1.0.0",
   "description": "💪 Sculptor - Roman Gladiator Workout Tracking App",
   "scripts": {
-    "dev": "concurrently \"npm run db:start\" \"npm run backend:dev\" \"npm run frontend:dev\"",
+    "dev": "concurrently \"npm run backend:dev\" \"npm run frontend:dev\"",
     "start": "npm run dev",
-    "db:start": "mongod --dbpath ./data/db --bind_ip 127.0.0.1 --port 27017",
-    "db:stop": "taskkill /f /im mongod.exe",
     "backend:dev": "cd backend && python server.py",
     "backend:install": "cd backend && pip install -r requirements.txt",
     "frontend:dev": "cd frontend && yarn start",
@@ -15,8 +13,8 @@
     "build": "cd frontend && yarn build",
     "test:backend": "cd backend && python -m pytest",
     "test:frontend": "cd frontend && yarn test",
-    "setup": "mkdir data\\db && npm run install:all",
-    "setup:unix": "mkdir -p data/db && npm run install:all",
+    "setup": "mkdir data\\json && npm run install:all",
+    "setup:unix": "mkdir -p data/json && npm run install:all",
     "win:start": "start.bat",
     "win:stop": "stop.bat",
     "win:setup": "powershell -ExecutionPolicy Bypass -File start.ps1"
