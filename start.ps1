@@ -1,5 +1,5 @@
 # 💪 Sculptor - Roman Gladiator Workout Tracker
-# PowerShell Startup Script
+# PowerShell Startup Script (JSON Database Version)
 
 Write-Host "🏛️ Welcome to Sculptor - Roman Gladiator Workout Tracker!" -ForegroundColor Yellow
 Write-Host "⚔️ Starting the gladiator training arena..." -ForegroundColor Yellow
@@ -46,16 +46,6 @@ if (Test-Command "pip") {
     exit 1
 }
 
-# Check for MongoDB
-if (Test-Command "mongod") {
-    Write-Host "✅ MongoDB found" -ForegroundColor Green
-} else {
-    Write-Host "❌ MongoDB not found. Please install from https://www.mongodb.com/try/download/community" -ForegroundColor Red
-    Write-Host "   Or use MongoDB Atlas (cloud) instead" -ForegroundColor Yellow
-    Read-Host "Press Enter to exit"
-    exit 1
-}
-
 # Check for Yarn
 if (Test-Command "yarn") {
     Write-Host "✅ Yarn found: $(yarn --version)" -ForegroundColor Green
@@ -67,9 +57,9 @@ if (Test-Command "yarn") {
 Write-Host ""
 Write-Host "🛠️ Setting up the arena..." -ForegroundColor Cyan
 
-# Create data directory for MongoDB
-New-Item -ItemType Directory -Force -Path "data\db" | Out-Null
-Write-Host "✅ Created MongoDB data directory" -ForegroundColor Green
+# Create data directory for JSON files
+New-Item -ItemType Directory -Force -Path "data\json" | Out-Null
+Write-Host "✅ Created JSON data directory" -ForegroundColor Green
 
 # Install backend dependencies
 Write-Host "📦 Installing backend dependencies..." -ForegroundColor Yellow
@@ -102,9 +92,9 @@ Write-Host "✅ Development tools installed" -ForegroundColor Green
 
 Write-Host ""
 Write-Host "🚀 Starting services..." -ForegroundColor Cyan
-Write-Host "   📊 MongoDB: http://localhost:27017" -ForegroundColor White
 Write-Host "   ⚔️ Backend API: http://localhost:8001" -ForegroundColor White
 Write-Host "   💪 Frontend: http://localhost:3000" -ForegroundColor White
+Write-Host "   📄 Data: JSON files in data/json/" -ForegroundColor White
 Write-Host ""
 Write-Host "Press Ctrl+C to stop all services" -ForegroundColor Yellow
 Write-Host ""
