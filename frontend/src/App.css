@@ -18,41 +18,42 @@ body {
   line-height: 1.6;
 }
 
-/* CSS Variables - Dark Underground Theme */
+/* CSS Variables - Dark Greek/Roman Gladiator Theme */
 :root {
-  /* Dark Underground Backgrounds */
-  --bg-page: #0a0a0a;
-  --bg-card: #1a1a1a;
-  --bg-section: rgba(30, 30, 30, 0.8);
-  --bg-elevated: #2a2a2a;
+  /* Gladiator Backgrounds */
+  --bg-page: #0d0a08;
+  --bg-card: #1a1612;
+  --bg-section: rgba(26, 22, 18, 0.8);
+  --bg-elevated: #2d2619;
 
-  /* Underground Text Colors */
-  --text-primary: #ffffff;
-  --text-secondary: #b0b0b0;
-  --text-muted: #666666;
-  --text-accent: #ff6b35;
+  /* Roman Gold & Stone Text Colors */
+  --text-primary: #f5f1eb;
+  --text-secondary: #c9b99a;
+  --text-muted: #8b7d6b;
+  --text-accent: #d4af37;
 
-  /* Underground Borders */
-  --border-light: rgba(255, 255, 255, 0.1);
-  --border-medium: rgba(255, 255, 255, 0.2);
-  --border-strong: rgba(255, 255, 255, 0.3);
+  /* Gladiator Borders */
+  --border-light: rgba(212, 175, 55, 0.1);
+  --border-medium: rgba(212, 175, 55, 0.2);
+  --border-strong: rgba(212, 175, 55, 0.3);
 
-  /* Underground Brand Colors */
-  --brand-primary: #ff6b35;
-  --brand-hover: #ff7a4a;
-  --brand-active: #e55a2b;
-  --brand-secondary: #ffd700;
+  /* Roman Imperial Colors */
+  --brand-primary: #d4af37;
+  --brand-hover: #e6c757;
+  --brand-active: #b8941f;
+  --brand-secondary: #8b0000;
 
-  /* Underground Gradients */
-  --gradient-hero: linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(26, 26, 26, 0.9) 25%, rgba(42, 42, 42, 0.85) 50%, rgba(26, 26, 26, 0.9) 75%, rgba(10, 10, 10, 0.95) 100%);
-  --gradient-button: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
-  --gradient-secondary: linear-gradient(135deg, #333333 0%, #1a1a1a 100%);
-  --gradient-danger: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  --gradient-success: linear-gradient(135deg, #059669 0%, #047857 100%);
+  /* Gladiator Gradients */
+  --gradient-hero: linear-gradient(135deg, rgba(13, 10, 8, 0.95) 0%, rgba(26, 22, 18, 0.9) 25%, rgba(45, 38, 25, 0.85) 50%, rgba(26, 22, 18, 0.9) 75%, rgba(13, 10, 8, 0.95) 100%);
+  --gradient-button: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+  --gradient-secondary: linear-gradient(135deg, #2d2619 0%, #1a1612 100%);
+  --gradient-danger: linear-gradient(135deg, #8b0000 0%, #660000 100%);
+  --gradient-success: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
 
-  /* Underground Shadows */
-  --shadow-dark: 0 4px 20px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 20px rgba(255, 107, 53, 0.3);
+  /* Gladiator Shadows & Effects */
+  --shadow-dark: 0 4px 20px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(212, 175, 55, 0.4);
+  --shadow-bronze: 0 4px 15px rgba(212, 175, 55, 0.2);
 }
 
 /* Typography - Underground Style */
