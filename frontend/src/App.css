@@ -427,7 +427,7 @@ body {
   line-height: 1.3;
 }
 
-/* Gladiator Workout View */
+/* Gladiator Workout View - Fixed Stacked Layout */
 .gladiator-workout-view {
   padding: 40px 0;
   min-height: calc(100vh - 80px);
@@ -482,7 +482,7 @@ body {
 }
 
 .gladiator-muscle-section {
-  margin-bottom: 40px;
+  margin-bottom: 48px;
 }
 
 .muscle-section-title {
@@ -496,28 +496,32 @@ body {
   border-left: 4px solid var(--brand-primary);
 }
 
-.gladiator-exercises-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 20px;
+/* Fixed Stacked Exercises Container */
+.stacked-exercises-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
 }
 
-.gladiator-exercise-card {
+.stacked-exercise-card {
   background: var(--bg-card);
   border: 2px solid var(--border-light);
   border-radius: 12px;
   padding: 20px;
   transition: all 0.2s ease;
   box-shadow: var(--shadow-dark);
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.gladiator-exercise-card.conquered {
+.stacked-exercise-card.conquered {
   background: var(--bg-section);
   border-color: var(--border-strong);
   opacity: 0.8;
 }
 
-.gladiator-exercise-card:hover {
+.stacked-exercise-card:hover {
   transform: translateY(-2px);
   border-color: var(--brand-primary);
   box-shadow: var(--shadow-bronze);
@@ -529,6 +533,15 @@ body {
   align-items: flex-start;
   margin-bottom: 20px;
   gap: 16px;
+  flex-wrap: wrap;
+}
+
+.exercise-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
 }
 
 .exercise-name {
@@ -536,13 +549,6 @@ body {
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
-}
-
-.exercise-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: flex-end;
 }
 
 .rep-range-select {
@@ -555,9 +561,16 @@ body {
   min-width: 120px;
 }
 
+.rep-range-select:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
 .completion-tracker {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-end;
   gap: 8px;
 }
 
@@ -568,6 +581,7 @@ body {
   background: var(--bg-elevated);
   padding: 4px 12px;
   border-radius: 12px;
+  white-space: nowrap;
 }
 
 .btn-complete, .btn-reset {
@@ -579,6 +593,7 @@ body {
   transition: all 0.2s ease;
   border: none;
   min-height: 32px;
+  white-space: nowrap;
 }
 
 .btn-complete {
@@ -601,11 +616,13 @@ body {
   transform: scale(1.05);
 }
 
-/* Horizontal Sets Layout */
+/* Horizontal Sets Layout - Weight Only */
 .horizontal-sets-container {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+  width: 100%;
+  margin-top: 12px;
 }
 
 .horizontal-set-card {
@@ -629,38 +646,33 @@ body {
   margin-bottom: 12px;
 }
 
-.set-inputs {
+.set-weight-input {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  justify-content: center;
 }
 
-.weight-input, .reps-input {
-  padding: 6px 8px;
+.weight-select {
+  width: 100%;
+  padding: 8px 6px;
   border: 1px solid var(--border-medium);
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 14px;
   background: var(--bg-card);
   color: var(--text-primary);
   text-align: center;
+  appearance: auto;
 }
 
-.weight-input:focus, .reps-input:focus {
+.weight-select:focus {
   outline: none;
   border-color: var(--brand-primary);
   box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
 }
 
-.weight-input:disabled, .reps-input:disabled {
+.weight-select:disabled {
   background: rgba(0, 0, 0, 0.2);
   color: var(--text-muted);
   cursor: not-allowed;
-}
-
-.input-label {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-top: 4px;
 }
 
 .arena-actions {
