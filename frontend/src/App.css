@@ -476,6 +476,26 @@ body {
   margin-bottom: 48px;
 }
 
+.section-title {
+  font-family: 'Satoshi';
+  font-weight: 600;
+  font-size: clamp(20px, 3vw, 28px);
+  color: var(--text-primary);
+  margin: 32px 0 24px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border-light);
+}
+
+.active-exercises {
+  margin-bottom: 48px;
+}
+
+.archived-exercises {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border-medium);
+}
+
 .muscle-group-section {
   margin-bottom: 48px;
 }
@@ -486,6 +506,71 @@ body {
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
+  transition: all 0.2s ease;
+}
+
+.exercise-card.archived {
+  background: rgba(243, 234, 255, 0.1);
+  border-color: var(--border-light);
+  opacity: 0.8;
+}
+
+.exercise-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  gap: 16px;
+}
+
+.exercise-completion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.completion-count {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-section);
+  padding: 4px 12px;
+  border-radius: 16px;
+  min-width: fit-content;
+}
+
+.btn-complete, .btn-reset {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  min-height: 36px;
+}
+
+.btn-complete {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  box-shadow: 0px 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.btn-complete:hover {
+  transform: scale(1.05);
+  box-shadow: 0px 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.btn-reset {
+  background: rgba(255, 152, 0, 0.1);
+  color: #FF9800;
+  border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.btn-reset:hover {
+  background: rgba(255, 152, 0, 0.2);
+  transform: scale(1.05);
 }
 
 .sets-table {
@@ -526,6 +611,12 @@ body {
 .set-input:focus {
   outline: none;
   border-color: var(--brand-primary);
+}
+
+.set-input:disabled {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-muted);
+  cursor: not-allowed;
 }
 
 .workout-actions {
