@@ -108,7 +108,7 @@ const HomeView = ({ setCurrentView, workoutSplits, setCurrentSplit }) => {
     setCurrentView('workout');
   };
 
-  // Show hero if no splits, show splits if they exist
+  // Show hero if no splits, show ONLY splits if they exist
   const showHeroOnly = workoutSplits.length === 0;
 
   if (showHeroOnly) {
@@ -140,34 +140,29 @@ const HomeView = ({ setCurrentView, workoutSplits, setCurrentSplit }) => {
     );
   }
 
+  // Show ONLY splits when they exist (no hero)
   return (
     <div className="home-view">
-      <section className="hero-section-compact">
-        <div className="hero-content">
-          <h1 className="hero-title">⚔️ GLADIATOR'S ARENA</h1>
-          <p className="hero-subtitle">
-            Choose your training regimen and forge your destiny
-          </p>
-          <div className="hero-actions">
-            <button 
-              className="btn-primary"
-              onClick={() => setCurrentView('create-split')}
-            >
-              🏛️ Create New Regimen
-            </button>
-            <button 
-              className="btn-secondary"
-              onClick={() => setCurrentView('exercise-archive')}
-            >
-              📜 Browse Codex
-            </button>
-          </div>
-        </div>
-      </section>
-
       <section className="splits-section">
         <div className="container">
-          <h2 className="heading-2">🏛️ Your Training Regimens</h2>
+          <div className="splits-header">
+            <h1 className="splits-title">🏛️ Your Training Regimens</h1>
+            <div className="splits-actions">
+              <button 
+                className="btn-primary"
+                onClick={() => setCurrentView('create-split')}
+              >
+                ⚔️ Create New Regimen
+              </button>
+              <button 
+                className="btn-secondary"
+                onClick={() => setCurrentView('exercise-archive')}
+              >
+                📜 Browse Codex
+              </button>
+            </div>
+          </div>
+          
           <div className="gladiator-splits-grid">
             {workoutSplits.map(split => (
               <div key={split.id} className="gladiator-split-card">
