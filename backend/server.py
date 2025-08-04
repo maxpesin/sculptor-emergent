@@ -98,6 +98,7 @@ class Set(BaseModel):
 class WorkoutExercise(BaseModel):
     exercise_id: str
     exercise_name: str
+    rep_range: Optional[str] = None
     sets: List[Set] = []
     completed_count: int = 0
     target_completions: int = 3
