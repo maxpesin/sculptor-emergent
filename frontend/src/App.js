@@ -379,14 +379,11 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
   const [currentDay, setCurrentDay] = useState(null);
   const [currentSessionId, setCurrentSessionId] = useState(null);
 
-  // Rep options dropdown
-  const repOptions = [
-    { value: 8, label: '8 reps' },
-    { value: 10, label: '10 reps' },
-    { value: 12, label: '12 reps' },
-    { value: 14, label: '14 reps' },
-    { value: 15, label: '15 reps' },
-    { value: 20, label: '20 reps' }
+  // Rep range options for each exercise
+  const repRangeOptions = [
+    { value: '6-10', label: '6-10 reps', min: 6, max: 10, default: 8 },
+    { value: '8-12', label: '8-12 reps', min: 8, max: 12, default: 10 },
+    { value: '10-14', label: '10-14 reps', min: 10, max: 14, default: 12 }
   ];
 
   useEffect(() => {
@@ -406,10 +403,12 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
               exercise_id: exercise.id,
               exercise_name: exercise.name,
               muscle_group: exercise.muscle_group,
+              rep_range: '8-12', // Default rep range
               sets: [
-                { set_number: 1, weight: 0, reps: 12 },
-                { set_number: 2, weight: 0, reps: 12 },
-                { set_number: 3, weight: 0, reps: 12 }
+                { set_number: 1, weight: 0, reps: 10 },
+                { set_number: 2, weight: 0, reps: 10 },
+                { set_number: 3, weight: 0, reps: 10 },
+                { set_number: 4, weight: 0, reps: 10 }
               ],
               completed_count: 0,
               target_completions: 3,
@@ -424,17 +423,25 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
 
   const updateSet = (exerciseIndex, setIndex, field, value) => {
     const updated = [...workoutExercises];
-    if (field === 'reps') {
-      updated[exerciseIndex].sets[setIndex][field] = parseInt(value) || 12;
-    } else {
-      updated[exerciseIndex].sets[setIndex][field] = parseFloat(value) || 0;
-    }
+    updated[exerciseIndex].sets[setIndex][field] = parseFloat(value) || 0;
+    setWorkoutExercises(updated);
+  };
+
+  const updateExerciseRepRange = (exerciseIndex, repRange) => {
+    const updated = [...workoutExercises];
+    const range = repRangeOptions.find(r => r.value === repRange);
+    updated[exerciseIndex].rep_range = repRange;
+    
+    // Update all sets to the default rep count for this range
+    updated[exerciseIndex].sets.forEach(set => {
+      set.reps = range.default;
+    });
+    
     setWorkoutExercises(updated);
   };
 
   const completeExercise = async (exerciseIndex) => {
     if (!currentSessionId) {
-      // Create session first if it doesn't exist
       await saveWorkout(true);
       return;
     }
@@ -443,17 +450,15 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
       const exercise = workoutExercises[exerciseIndex];
       const response = await axios.patch(`${API}/sessions/${currentSessionId}/exercises/${exercise.exercise_id}/complete`);
       
-      // Update local state
       const updated = [...workoutExercises];
       updated[exerciseIndex].completed_count = response.data.completed_count;
       updated[exerciseIndex].is_archived = response.data.is_archived;
       setWorkoutExercises(updated);
 
-      // Show completion message
       if (response.data.is_archived) {
-        alert(`🔥 BEAST MODE! "${exercise.exercise_name}" conquered and archived! 💀`);
+        alert(`⚔️ VICTORY! "${exercise.exercise_name}" has been conquered and archived! 🏛️`);
       } else {
-        alert(`💪 REP COMPLETED! ${response.data.completed_count}/${exercise.target_completions} reps done. Keep grinding! ⚡`);
+        alert(`💪 PROGRESS! ${response.data.completed_count}/${exercise.target_completions} conquests. Continue your training! ⚔️`);
       }
     } catch (error) {
       console.error('Error completing exercise:', error);
@@ -468,13 +473,12 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
       const exercise = workoutExercises[exerciseIndex];
       const response = await axios.patch(`${API}/sessions/${currentSessionId}/exercises/${exercise.exercise_id}/reset`);
       
-      // Update local state
       const updated = [...workoutExercises];
       updated[exerciseIndex].completed_count = 0;
       updated[exerciseIndex].is_archived = false;
       setWorkoutExercises(updated);
 
-      alert('🔄 Exercise reset - Back to the grind!');
+      alert('🔄 Exercise reset - Return to the arena!');
     } catch (error) {
       console.error('Error resetting exercise:', error);
       alert('❌ Error resetting exercise completion');
@@ -493,7 +497,7 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
       setCurrentSessionId(response.data.id);
 
       if (!createSessionOnly) {
-        alert('💀 Workout logged in the underground archives!');
+        alert('⚔️ Your training has been recorded in the gladiator chronicles!');
         setCurrentView('home');
       }
     } catch (error) {
@@ -503,14 +507,13 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
   };
 
   if (!currentDay) {
-    return <div className="loading">🔄 Loading your arsenal...</div>;
+    return <div className="loading">🔄 Preparing the arena...</div>;
   }
 
-  // Separate active and archived exercises
   const activeExercises = workoutExercises.filter(ex => !ex.is_archived);
   const archivedExercises = workoutExercises.filter(ex => ex.is_archived);
 
-  const renderCompactExercises = (exercisesToRender, isArchived = false) => {
+  const renderGladiatorExercises = (exercisesToRender, isArchived = false) => {
     const groupedExercises = exercisesToRender.reduce((acc, exercise) => {
       if (!acc[exercise.muscle_group]) {
         acc[exercise.muscle_group] = [];
@@ -520,12 +523,12 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
     }, {});
 
     return Object.entries(groupedExercises).map(([muscleGroup, groupExercises]) => (
-      <div key={`${muscleGroup}-${isArchived ? 'archived' : 'active'}`} className="muscle-group-section">
-        <h2 className="heading-2">
-          {getMuscleEmoji(muscleGroup)} {muscleGroup} {isArchived && '(💀 Conquered)'}
+      <div key={`${muscleGroup}-${isArchived ? 'archived' : 'active'}`} className="gladiator-muscle-section">
+        <h2 className="muscle-section-title">
+          {getMuscleEmoji(muscleGroup)} {muscleGroup} {isArchived && '(🏆 Conquered)'}
         </h2>
         
-        <div className="compact-exercises-grid">
+        <div className="gladiator-exercises-grid">
           {groupExercises.map((exercise, exerciseIndex) => {
             const globalIndex = workoutExercises.findIndex(we => 
               we.exercise_id === exercise.exercise_id && 
@@ -533,36 +536,50 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
             );
             
             return (
-              <div key={`${exercise.exercise_id}-${muscleGroup}`} className={`compact-exercise-card ${isArchived ? 'archived' : ''}`}>
+              <div key={`${exercise.exercise_id}-${muscleGroup}`} className={`gladiator-exercise-card ${isArchived ? 'conquered' : ''}`}>
                 <div className="exercise-header">
                   <h3 className="exercise-name">{exercise.exercise_name}</h3>
-                  <div className="exercise-completion">
-                    <span className="completion-count">
-                      {exercise.completed_count}/{exercise.target_completions}
-                    </span>
-                    {!isArchived && (
-                      <button
-                        className="btn-complete"
-                        onClick={() => completeExercise(globalIndex)}
-                      >
-                        ✅ Complete
-                      </button>
-                    )}
-                    {isArchived && (
-                      <button
-                        className="btn-reset"
-                        onClick={() => resetExerciseCompletion(globalIndex)}
-                      >
-                        🔄 Reset
-                      </button>
-                    )}
+                  <div className="exercise-controls">
+                    <select
+                      className="rep-range-select"
+                      value={exercise.rep_range}
+                      onChange={(e) => updateExerciseRepRange(globalIndex, e.target.value)}
+                      disabled={isArchived}
+                    >
+                      {repRangeOptions.map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="completion-tracker">
+                      <span className="completion-count">
+                        {exercise.completed_count}/{exercise.target_completions}
+                      </span>
+                      {!isArchived && (
+                        <button
+                          className="btn-complete"
+                          onClick={() => completeExercise(globalIndex)}
+                        >
+                          ⚔️ Complete
+                        </button>
+                      )}
+                      {isArchived && (
+                        <button
+                          className="btn-reset"
+                          onClick={() => resetExerciseCompletion(globalIndex)}
+                        >
+                          🔄 Reset
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
-                <div className="compact-sets-grid">
+                <div className="horizontal-sets-container">
                   {exercise.sets.map((set, setIndex) => (
-                    <div key={setIndex} className="compact-set-row">
-                      <span className="set-number">Set {set.set_number}</span>
+                    <div key={setIndex} className="horizontal-set-card">
+                      <div className="set-header">Set {set.set_number}</div>
                       <div className="set-inputs">
                         <input
                           type="number"
@@ -572,18 +589,16 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
                           placeholder="Weight"
                           disabled={isArchived}
                         />
-                        <select
-                          className="reps-select"
+                        <span className="input-label">lbs</span>
+                        <input
+                          type="number"
+                          className="reps-input"
                           value={set.reps}
                           onChange={(e) => updateSet(globalIndex, setIndex, 'reps', e.target.value)}
+                          placeholder="Reps"
                           disabled={isArchived}
-                        >
-                          {repOptions.map(option => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
+                        />
+                        <span className="input-label">reps</span>
                       </div>
                     </div>
                   ))}
@@ -598,48 +613,46 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
 
   const getMuscleEmoji = (muscleGroup) => {
     const emojiMap = {
-      'Chest': '💥',
-      'Back': '🦵',
-      'Shoulders': '🔥',
+      'Chest': '🛡️',
+      'Back': '⚔️',
+      'Shoulders': '🏛️',
       'Arms': '💪',
       'Legs': '🦵',
       'Core': '⚡'
     };
-    return emojiMap[muscleGroup] || '💀';
+    return emojiMap[muscleGroup] || '⚔️';
   };
 
   return (
-    <div className="workout-view">
+    <div className="gladiator-workout-view">
       <div className="container">
-        <div className="workout-header">
-          <h1 className="heading-1">💀 {currentDay.day_name}</h1>
-          <p className="body-large">🎯 Target: {currentDay.muscle_groups.join(', ')}</p>
+        <div className="arena-header">
+          <h1 className="arena-title">⚔️ {currentDay.day_name}</h1>
+          <p className="arena-subtitle">🎯 Focus: {currentDay.muscle_groups.join(' • ')}</p>
         </div>
 
-        <div className="workout-content">
-          {/* Active Exercises */}
+        <div className="arena-content">
           {activeExercises.length > 0 && (
-            <div className="active-exercises">
-              <h2 className="section-title">⚔️ ACTIVE ARSENAL</h2>
-              {renderCompactExercises(activeExercises, false)}
+            <div className="active-training">
+              <h2 className="section-title">⚔️ ACTIVE TRAINING</h2>
+              {renderGladiatorExercises(activeExercises, false)}
             </div>
           )}
           
-          {/* Archived Exercises */}
           {archivedExercises.length > 0 && (
-            <div className="archived-exercises">
-              <h2 className="section-title">💀 CONQUERED EXERCISES</h2>
-              {renderCompactExercises(archivedExercises, true)}
+            <div className="conquered-training">
+              <h2 className="section-title">🏆 CONQUERED EXERCISES</h2>
+              {renderGladiatorExercises(archivedExercises, true)}
             </div>
           )}
         </div>
 
-        <div className="workout-actions">
+        <div className="arena-actions">
           <button className="btn-secondary" onClick={() => setCurrentView('home')}>
-            🏠 Back to Base
+            🏛️ Return to Colosseum
           </button>
           <button className="btn-primary" onClick={() => saveWorkout(false)}>
-            💾 Log Session
+            📜 Record Victory
           </button>
         </div>
       </div>
