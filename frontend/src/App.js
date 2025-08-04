@@ -386,6 +386,14 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
     { value: '10-14', label: '10-14 reps', min: 10, max: 14, default: 12 }
   ];
 
+  // Weight options for dropdown
+  const weightOptions = [
+    0, 1, 2, 3, 4, 5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25, 27.5, 30, 
+    32.5, 35, 37.5, 40, 42.5, 45, 47.5, 50, 55, 60, 65, 70, 75, 80, 85, 
+    90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 160, 
+    170, 180, 190, 200, 225, 250, 275, 300, 325, 350, 375, 400
+  ];
+
   useEffect(() => {
     if (currentSplit) {
       const day = currentSplit.days.find(d => d.day_number === currentSplit.currentDay);
@@ -405,10 +413,10 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
               muscle_group: exercise.muscle_group,
               rep_range: '8-12', // Default rep range
               sets: [
-                { set_number: 1, weight: 0, reps: 10 },
-                { set_number: 2, weight: 0, reps: 10 },
-                { set_number: 3, weight: 0, reps: 10 },
-                { set_number: 4, weight: 0, reps: 10 }
+                { set_number: 1, weight: 0 },
+                { set_number: 2, weight: 0 },
+                { set_number: 3, weight: 0 },
+                { set_number: 4, weight: 0 }
               ],
               completed_count: 0,
               target_completions: 3,
@@ -429,14 +437,7 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
 
   const updateExerciseRepRange = (exerciseIndex, repRange) => {
     const updated = [...workoutExercises];
-    const range = repRangeOptions.find(r => r.value === repRange);
     updated[exerciseIndex].rep_range = repRange;
-    
-    // Update all sets to the default rep count for this range
-    updated[exerciseIndex].sets.forEach(set => {
-      set.reps = range.default;
-    });
-    
     setWorkoutExercises(updated);
   };
 
@@ -490,7 +491,13 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
       const sessionData = {
         split_id: currentSplit.id,
         day_number: currentSplit.currentDay,
-        exercises: workoutExercises
+        exercises: workoutExercises.map(ex => ({
+          ...ex,
+          sets: ex.sets.map(set => ({
+            ...set,
+            reps: repRangeOptions.find(r => r.value === ex.rep_range)?.default || 10
+          }))
+        }))
       };
 
       const response = await axios.post(`${API}/sessions`, sessionData);
@@ -528,7 +535,7 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
           {getMuscleEmoji(muscleGroup)} {muscleGroup} {isArchived && '(🏆 Conquered)'}
         </h2>
         
-        <div className="gladiator-exercises-grid">
+        <div className="stacked-exercises-container">
           {groupExercises.map((exercise, exerciseIndex) => {
             const globalIndex = workoutExercises.findIndex(we => 
               we.exercise_id === exercise.exercise_id && 
@@ -536,10 +543,10 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
             );
             
             return (
-              <div key={`${exercise.exercise_id}-${muscleGroup}`} className={`gladiator-exercise-card ${isArchived ? 'conquered' : ''}`}>
+              <div key={`${exercise.exercise_id}-${muscleGroup}`} className={`stacked-exercise-card ${isArchived ? 'conquered' : ''}`}>
                 <div className="exercise-header">
-                  <h3 className="exercise-name">{exercise.exercise_name}</h3>
-                  <div className="exercise-controls">
+                  <div className="exercise-info">
+                    <h3 className="exercise-name">{exercise.exercise_name}</h3>
                     <select
                       className="rep-range-select"
                       value={exercise.rep_range}
@@ -552,27 +559,27 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
                         </option>
                       ))}
                     </select>
-                    <div className="completion-tracker">
-                      <span className="completion-count">
-                        {exercise.completed_count}/{exercise.target_completions}
-                      </span>
-                      {!isArchived && (
-                        <button
-                          className="btn-complete"
-                          onClick={() => completeExercise(globalIndex)}
-                        >
-                          ⚔️ Complete
-                        </button>
-                      )}
-                      {isArchived && (
-                        <button
-                          className="btn-reset"
-                          onClick={() => resetExerciseCompletion(globalIndex)}
-                        >
-                          🔄 Reset
-                        </button>
-                      )}
-                    </div>
+                  </div>
+                  <div className="completion-tracker">
+                    <span className="completion-count">
+                      {exercise.completed_count}/{exercise.target_completions}
+                    </span>
+                    {!isArchived && (
+                      <button
+                        className="btn-complete"
+                        onClick={() => completeExercise(globalIndex)}
+                      >
+                        ⚔️ Complete
+                      </button>
+                    )}
+                    {isArchived && (
+                      <button
+                        className="btn-reset"
+                        onClick={() => resetExerciseCompletion(globalIndex)}
+                      >
+                        🔄 Reset
+                      </button>
+                    )}
                   </div>
                 </div>
                 
@@ -580,25 +587,19 @@ const WorkoutView = ({ currentSplit, exercises, setCurrentView }) => {
                   {exercise.sets.map((set, setIndex) => (
                     <div key={setIndex} className="horizontal-set-card">
                       <div className="set-header">Set {set.set_number}</div>
-                      <div className="set-inputs">
-                        <input
-                          type="number"
-                          className="weight-input"
+                      <div className="set-weight-input">
+                        <select
+                          className="weight-select"
                           value={set.weight}
                           onChange={(e) => updateSet(globalIndex, setIndex, 'weight', e.target.value)}
-                          placeholder="Weight"
                           disabled={isArchived}
-                        />
-                        <span className="input-label">lbs</span>
-                        <input
-                          type="number"
-                          className="reps-input"
-                          value={set.reps}
-                          onChange={(e) => updateSet(globalIndex, setIndex, 'reps', e.target.value)}
-                          placeholder="Reps"
-                          disabled={isArchived}
-                        />
-                        <span className="input-label">reps</span>
+                        >
+                          {weightOptions.map(weight => (
+                            <option key={weight} value={weight}>
+                              {weight === 0 ? '-- lbs' : `${weight} lbs`}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                   ))}
