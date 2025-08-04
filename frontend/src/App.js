@@ -111,22 +111,22 @@ const HomeView = ({ setCurrentView, workoutSplits, setCurrentSplit }) => {
     <div className="home-view">
       <section className="hero-section">
         <div className="hero-content">
-          <h1 className="hero-title">Track Your Workouts</h1>
+          <h1 className="hero-title">💪 UNDERGROUND TRAINING</h1>
           <p className="hero-subtitle">
-            Create custom workout splits, track your progress, and build the perfect routine
+            No bullsh*t. No excuses. Just pure iron and gains in the darkness.
           </p>
           <div className="hero-actions">
             <button 
               className="btn-primary"
               onClick={() => setCurrentView('create-split')}
             >
-              Create New Split
+              🔥 Create New Split
             </button>
             <button 
               className="btn-secondary"
               onClick={() => setCurrentView('exercise-archive')}
             >
-              Browse Exercises
+              📚 Browse Arsenal
             </button>
           </div>
         </div>
@@ -134,14 +134,14 @@ const HomeView = ({ setCurrentView, workoutSplits, setCurrentSplit }) => {
 
       <section className="splits-section">
         <div className="container">
-          <h2 className="heading-2">Your Workout Splits</h2>
+          <h2 className="heading-2">⚔️ Your Training Splits</h2>
           {workoutSplits.length > 0 ? (
             <div className="company-grid">
               {workoutSplits.map(split => (
                 <div key={split.id} className="service-card">
-                  <div className="service-card-title">{split.name}</div>
+                  <div className="service-card-title">💀 {split.name}</div>
                   <div className="service-card-description">
-                    {split.days_per_week} days per week
+                    🗓️ {split.days_per_week} days per week
                   </div>
                   <div className="split-days">
                     {split.days.map(day => (
@@ -150,7 +150,7 @@ const HomeView = ({ setCurrentView, workoutSplits, setCurrentSplit }) => {
                         className="btn-secondary day-button"
                         onClick={() => handleStartWorkout(split, day.day_number)}
                       >
-                        Day {day.day_number}: {day.day_name}
+                        💥 Day {day.day_number}: {day.day_name}
                       </button>
                     ))}
                   </div>
@@ -159,12 +159,13 @@ const HomeView = ({ setCurrentView, workoutSplits, setCurrentSplit }) => {
             </div>
           ) : (
             <div className="empty-state">
-              <p className="body-large">No workout splits created yet</p>
+              <p className="body-large">🎯 No training splits created yet</p>
+              <p className="body-medium">Time to build your underground arsenal</p>
               <button 
                 className="btn-primary"
                 onClick={() => setCurrentView('create-split')}
               >
-                Create Your First Split
+                🔥 Create Your First Split
               </button>
             </div>
           )}
