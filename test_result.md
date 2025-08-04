@@ -165,6 +165,21 @@ backend:
           agent: "testing"
           comment: "✅ COMPREHENSIVE TESTING PASSED: Template system working perfectly. GET /api/templates returns all 3 expected templates (push_pull_legs, upper_lower, full_body). Each template has correct structure with name, days_per_week, and days array. Push/Pull/Legs is 3-day split, Upper/Lower is 4-day split, Full Body is 3-day split. All templates include proper muscle group assignments and day configurations. Template data structure is consistent and ready for frontend consumption."
 
+  - task: "Exercise Completion Tracking"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "Implemented new completion tracking feature with PATCH endpoints for completing and resetting exercises. Added completed_count, target_completions, and is_archived fields to WorkoutExercise model."
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPLETION TRACKING FEATURE FULLY TESTED AND WORKING: All new completion endpoints working perfectly. PATCH /api/sessions/{session_id}/exercises/{exercise_id}/complete correctly increments completed_count and archives exercise when reaching target_completions (3). PATCH /api/sessions/{session_id}/exercises/{exercise_id}/reset properly resets completed_count to 0 and sets is_archived to false. WorkoutExercise model includes all required fields: completed_count (default 0), target_completions (default 3), is_archived (default false). Full completion flow tested: exercise completed 3 times → automatically archived → reset → can be completed again. All responses include proper status messages and updated completion data. Feature ready for production use."
+
 frontend:
   - task: "Home Page and Navigation"
     implemented: true
