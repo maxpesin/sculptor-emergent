@@ -74,26 +74,26 @@ const Navigation = ({ currentView, setCurrentView }) => {
   return (
     <nav className="nav-header">
       <div className="nav-brand">
-        <h1 className="brand-display">WorkoutTracker</h1>
+        <h1 className="brand-display">💀 UndergroundGym</h1>
       </div>
       <div className="nav-links">
         <button 
           className={`nav-link ${currentView === 'home' ? 'active' : ''}`}
           onClick={() => setCurrentView('home')}
         >
-          Home
+          🏠 Home
         </button>
         <button 
           className={`nav-link ${currentView === 'create-split' ? 'active' : ''}`}
           onClick={() => setCurrentView('create-split')}
         >
-          Create Split
+          ⚡ Create Split
         </button>
         <button 
           className={`nav-link ${currentView === 'exercise-archive' ? 'active' : ''}`}
           onClick={() => setCurrentView('exercise-archive')}
         >
-          Exercise Archive
+          📋 Exercise Archive
         </button>
       </div>
     </nav>
