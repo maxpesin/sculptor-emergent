@@ -665,13 +665,6 @@ const ExerciseArchiveView = ({ exercises, muscleGroups, setCurrentView }) => {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState(null);
 
-  // Rep range options mirror those used in the workout view
-  const repRangeOptions = [
-    { value: '6-10', label: '6-10 reps', min: 6, max: 10, default: 8 },
-    { value: '8-12', label: '8-12 reps', min: 8, max: 12, default: 10 },
-    { value: '10-14', label: '10-14 reps', min: 10, max: 14, default: 12 }
-  ];
-
   useEffect(() => {
     setExerciseOrder(exercises.map(ex => ex.id));
     fetchExerciseHistory();
@@ -757,15 +750,13 @@ const ExerciseArchiveView = ({ exercises, muscleGroups, setCurrentView }) => {
 
     const latest = historyEntries[0];
     const lastSet = latest.sets[latest.sets.length - 1];
-    const repRangeDefault = repRangeOptions.find(r => r.value === latest.rep_range)?.default;
-    const reps = (lastSet.reps && lastSet.reps > 0) ? lastSet.reps : (repRangeDefault ?? 0);
     const date = new Date(latest.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
     return (
       <div className="gladiator-history">
         <div className="history-date">📅 {date}</div>
         <div className="history-details">
-          ⚖️ {lastSet.weight}lbs × {reps} reps
+          ⚖️ {lastSet.weight}lbs × {lastSet.reps} reps
         </div>
         <div className="history-completions">
           🏆 {latest.completed_count} victories
